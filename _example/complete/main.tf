@@ -23,9 +23,5 @@ module "storage" {
 
   containers_list = [
     { name = "mystore250", access_type = "private" },
-
   ]
-
 }
-
-
