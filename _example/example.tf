@@ -14,7 +14,7 @@ module "resource_group" {
 
 module "storage" {
   depends_on               = [module.resource_group]
-  source                   = "./../.././"
+  source                   = "./.././"
   resource_group_name      = module.resource_group.resource_group_name
   storage_account_name     = "storagestartac"
   account_kind             = "BlobStorage"
