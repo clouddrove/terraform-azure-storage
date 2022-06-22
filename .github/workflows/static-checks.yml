@@ -27,8 +27,8 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - v1.0.0
-          - v1.2.3
+          - ${{ needs.versionExtract.outputs.minVersion }}
+          - ${{ needs.versionExtract.outputs.maxVersion }}
         directory:
           - _example/complete
 
@@ -46,7 +46,6 @@ jobs:
           cd ${{ matrix.directory }}
           terraform init
           terraform validate
-
       - name: tflint
         uses: reviewdog/action-tflint@master
         with:
