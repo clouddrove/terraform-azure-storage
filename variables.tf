@@ -97,7 +97,7 @@ variable "min_tls_version" {
 
 variable "soft_delete_retention" {
   type        = number
-  default     = null
+  default     = 30
   description = "Number of retention days for soft delete. If set to null it will disable soft delete all together."
 }
 
