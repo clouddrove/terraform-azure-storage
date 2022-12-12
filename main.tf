@@ -28,6 +28,8 @@ resource "azurerm_storage_account" "storage" {
   account_replication_type  = var.account_replication_type
   enable_https_traffic_only = var.enable_https_traffic_only
   min_tls_version           = var.min_tls_version
+  is_hns_enabled            = var.is_hns_enabled
+  sftp_enabled              = var.sftp_enabled
   tags                      = module.labels.tags
 
   blob_properties {
@@ -37,12 +39,13 @@ resource "azurerm_storage_account" "storage" {
   }
 
   dynamic "network_rules" {
-    for_each = var.network_rules != null ? ["true"] : []
+    for_each = var.network_rules
     content {
       default_action             = "Deny"
-      bypass                     = var.network_rules.bypass
-      ip_rules                   = var.network_rules.ip_rules
-      virtual_network_subnet_ids = var.network_rules.subnet_ids
+      ip_rules                   = lookup(network_rules.value, "ip_rules", null )
+      virtual_network_subnet_ids = lookup(network_rules.value, "virtual_network_subnet_ids", null )
+      bypass                     = lookup(network_rules.value, "bypass", null)
+
     }
   }
 }

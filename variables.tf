@@ -108,8 +108,17 @@ variable "containers_list" {
 }
 
 variable "network_rules" {
-  type        = object({ bypass = list(string), ip_rules = list(string), subnet_ids = list(string) })
-  default     = null
+  type        = list(any)
+  default     = []
   description = "Network rules restricing access to the storage account."
 }
 
+variable "is_hns_enabled" {
+  type = bool
+  default = false
+}
+
+variable "sftp_enabled" {
+  type = bool
+  default = false
+}
