@@ -114,11 +114,37 @@ variable "network_rules" {
 }
 
 variable "is_hns_enabled" {
-  type = bool
-  default = false
+  description = "Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2. Changing this forces a new resource to be created."
+  type        = bool
+  default     = false
 }
 
 variable "sftp_enabled" {
-  type = bool
-  default = false
+  description = "Boolean, enable SFTP for the storage account"
+  type        = bool
+  default     = false
+}
+
+variable "enable_advanced_threat_protection" {
+  description = "Boolean flag which controls if advanced threat protection is enabled."
+  default     = false
+  type        = bool
+}
+
+variable "file_shares" {
+  description = "List of containers to create and their access levels."
+  type        = list(object({ name = string, quota = number }))
+  default     = []
+}
+
+variable "tables" {
+  description = "List of storage tables."
+  type        = list(string)
+  default     = []
+}
+
+variable "queues" {
+  description = "List of storages queues"
+  type        = list(string)
+  default     = []
 }

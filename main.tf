@@ -31,7 +31,6 @@ resource "azurerm_storage_account" "storage" {
   is_hns_enabled            = var.is_hns_enabled
   sftp_enabled              = var.sftp_enabled
   tags                      = module.labels.tags
-
   blob_properties {
     delete_retention_policy {
       days = var.soft_delete_retention
@@ -42,15 +41,21 @@ resource "azurerm_storage_account" "storage" {
     for_each = var.network_rules
     content {
       default_action             = "Deny"
-      ip_rules                   = lookup(network_rules.value, "ip_rules", null )
-      virtual_network_subnet_ids = lookup(network_rules.value, "virtual_network_subnet_ids", null )
+      ip_rules                   = lookup(network_rules.value, "ip_rules", null)
+      virtual_network_subnet_ids = lookup(network_rules.value, "virtual_network_subnet_ids", null)
       bypass                     = lookup(network_rules.value, "bypass", null)
 
     }
   }
 }
 
-## Storage Container Creation
+## Storage Account Threat Protection
+resource "azurerm_advanced_threat_protection" "atp" {
+  target_resource_id = join("", azurerm_storage_account.storage.*.id)
+  enabled            = var.enable_advanced_threat_protection
+}
+
+## Storage Container
 resource "azurerm_storage_container" "container" {
   count                 = length(var.containers_list)
   name                  = var.containers_list[count.index].name
@@ -58,9 +63,24 @@ resource "azurerm_storage_container" "container" {
   container_access_type = var.containers_list[count.index].access_type
 }
 
+## Storage File Share
+resource "azurerm_storage_share" "fileshare" {
+  count                = length(var.file_shares)
+  name                 = var.file_shares[count.index].name
+  storage_account_name = join("", azurerm_storage_account.storage.*.name)
+  quota                = var.file_shares[count.index].quota
+}
 
+## Storage Tables
+resource "azurerm_storage_table" "tables" {
+  count                = length(var.tables)
+  name                 = var.tables[count.index]
+  storage_account_name = join("", azurerm_storage_account.storage.*.name)
+}
 
-
-
-
-
+## Storage Queues
+resource "azurerm_storage_queue" "queues" {
+  count                = length(var.queues)
+  name                 = var.queues[count.index]
+  storage_account_name = join("", azurerm_storage_account.storage.*.name)
+}
