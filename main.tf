@@ -1,11 +1,3 @@
-data "azurerm_resource_group" "default" {
-  name = var.resource_group_name
-}
-
-locals {
-  resource_group_name = data.azurerm_resource_group.default.name
-  location            = data.azurerm_resource_group.default.location
-}
 
 module "labels" {
   source      = "clouddrove/labels/azure"
@@ -20,8 +12,8 @@ module "labels" {
 resource "azurerm_storage_account" "storage" {
   count                     = var.enabled ? 1 : 0
   name                      = var.storage_account_name
-  resource_group_name       = local.resource_group_name
-  location                  = local.location
+  resource_group_name       = var.resource_group_name
+  location                  = var.location
   account_kind              = var.account_kind
   account_tier              = var.account_tier
   access_tier               = var.access_tier
@@ -37,16 +29,16 @@ resource "azurerm_storage_account" "storage" {
     }
   }
 
-  dynamic "network_rules" {
-    for_each = var.network_rules
-    content {
-      default_action             = "Deny"
-      ip_rules                   = lookup(network_rules.value, "ip_rules", null)
-      virtual_network_subnet_ids = lookup(network_rules.value, "virtual_network_subnet_ids", null)
-      bypass                     = lookup(network_rules.value, "bypass", null)
+}
 
-    }
-  }
+# Network Rules
+resource "azurerm_storage_account_network_rules" "network-rules" {
+  for_each                   = { for rule in var.network_rules : rule.default_action => rule }
+  storage_account_id         = join("", azurerm_storage_account.storage.*.id)
+  default_action             = lookup(each.value, "default_action", "Deny")
+  ip_rules                   = lookup(each.value, "ip_rules", null)
+  virtual_network_subnet_ids = lookup(each.value, "virtual_network_subnet_ids", null)
+  bypass                     = lookup(each.value, "bypass", null)
 }
 
 ## Storage Account Threat Protection
@@ -83,4 +75,34 @@ resource "azurerm_storage_queue" "queues" {
   count                = length(var.queues)
   name                 = var.queues[count.index]
   storage_account_name = join("", azurerm_storage_account.storage.*.name)
+}
+
+## Management Policies 
+
+resource "azurerm_storage_management_policy" "lifecycle_management" {
+  count              = length(var.management_policy) == 0 ? 0 : 1
+  storage_account_id = join("", azurerm_storage_account.storage.*.id)
+
+  dynamic "rule" {
+    for_each = var.management_policy
+    iterator = it
+    content {
+      name    = "rule${it.key}"
+      enabled = true
+      filters {
+        prefix_match = it.value.prefix_match
+        blob_types   = ["blockBlob"]
+      }
+      actions {
+        base_blob {
+          tier_to_cool_after_days_since_modification_greater_than    = it.value.tier_to_cool_after_days
+          tier_to_archive_after_days_since_modification_greater_than = it.value.tier_to_archive_after_days
+          delete_after_days_since_modification_greater_than          = it.value.delete_after_days
+        }
+        snapshot {
+          delete_after_days_since_creation_greater_than = it.value.snapshot_delete_after_days
+        }
+      }
+    }
+  }
 }
