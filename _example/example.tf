@@ -3,6 +3,7 @@ provider "azurerm" {
   features {}
 }
 
+## Resource Group
 module "resource_group" {
   source = "clouddrove/resource-group/azure"
 
@@ -12,24 +13,56 @@ module "resource_group" {
   location    = "North Europe"
 }
 
+
+##    Storage Account
 module "storage" {
-  depends_on               = [module.resource_group]
-  source                   = "./.././"
-  resource_group_name      = module.resource_group.resource_group_name
-  storage_account_name     = "storagestartac"
-  account_kind             = "BlobStorage"
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
-  is_hns_enabled           = true
-  sftp_enabled             = true
+  depends_on                = [module.resource_group]
+  source                    = "../"
+  resource_group_name       = module.resource_group.resource_group_name
+  location                  = module.resource_group.resource_group_location
+  storage_account_name      = "storagestartac"
+  account_kind              = "StorageV2"
+  account_tier              = "Standard"
+  account_replication_type  = "GRS"
+  enable_https_traffic_only = true
+  is_hns_enabled            = true
+  sftp_enabled              = true
+
   network_rules = [
     {
-    ip_rules = ["0.0.0.0/0"]
-    bypass  = ["AzureServices"]
-   }
+      default_action = "Deny"
+      ip_rules       = ["0.0.0.0/0"]
+      bypass         = ["AzureServices"]
+    }
   ]
 
+
+  ##   Storage Account Threat Protection
+  enable_advanced_threat_protection = true
+
+  ##   Storage Container
   containers_list = [
-    { name = "mystore250", access_type = "private" },
+    { name = "app-test", access_type = "private" },
+  ]
+
+  ##   Storage File Share
+  file_shares = [
+    { name = "fileshare1", quota = 5 },
+  ]
+
+  ##   Storage Tables
+  tables = ["table1"]
+
+  ## Storage Queues
+  queues = ["queue1"]
+
+  management_policy = [
+    {
+      prefix_match               = ["app-test/folder_path"]
+      tier_to_cool_after_days    = 0
+      tier_to_archive_after_days = 50
+      delete_after_days          = 100
+      snapshot_delete_after_days = 30
+    }
   ]
 }

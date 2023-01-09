@@ -45,3 +45,18 @@ output "containers" {
   value       = { for c in azurerm_storage_container.container : c.name => c.id }
   description = "Map of containers."
 }
+
+output "file_shares" {
+  description = "Map of Storage SMB file shares."
+  value       = { for f in azurerm_storage_share.fileshare : f.name => f.id }
+}
+
+output "tables" {
+  description = "Map of Storage SMB file shares."
+  value       = { for t in azurerm_storage_table.tables : t.name => t.id }
+}
+
+output "queues" {
+  description = "Map of Storage SMB file shares."
+  value       = { for q in azurerm_storage_queue.queues : q.name => q.id }
+}
