@@ -2,7 +2,7 @@ name: 'Create README.md file'
 on:
   push:
     branches:
-      - master
+      - internal-274-a
 
 jobs:
   readme-create:
@@ -52,3 +52,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # required
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_TERRAFORM }} # required
         if: always()
+
