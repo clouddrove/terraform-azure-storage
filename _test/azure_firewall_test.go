@@ -24,11 +24,11 @@ func Test(t *testing.T) {
 	defer terraform.Destroy(t, terraformOptions)
 
 	// To get the value of an output variable, run 'terraform output'
-	Id := terraform.Output(t, terraformOptions, "storage_account_id")
+	Id := terraform.Output(t, terraformOptions, "firewall_id")
 	Tags := terraform.OutputMap(t, terraformOptions, "tags")
 
 	// Check that we get back the outputs that we expect
-	assert.Equal(t, "test-clouddrove-storage", Tags["Name"])
+	assert.Equal(t, "test-clouddrove-firewall", Tags["Name"])
 	assert.Contains(t, Id, "/subscriptions")
 }
 }
