@@ -4,11 +4,11 @@
 
 
 <h1 align="center">
-    Terraform AZURE FIREWALL
+    Terraform AZURE STORAGE
 </h1>
 
 <p align="center" style="font-size: 1.2rem;"> 
-    Terraform module to create firewall resource on AZURE.
+    Terraform module to create storage resource on AZURE.
      </p>
 
 <p align="center">
@@ -24,13 +24,13 @@
 </p>
 <p align="center">
 
-<a href='https://facebook.com/sharer/sharer.php?u=https://github.com/clouddrove/terraform-azure-firewall'>
+<a href='https://facebook.com/sharer/sharer.php?u=https://github.com/clouddrove/terraform-azure-storage'>
   <img title="Share on Facebook" src="https://user-images.githubusercontent.com/50652676/62817743-4f64cb80-bb59-11e9-90c7-b057252ded50.png" />
 </a>
-<a href='https://www.linkedin.com/shareArticle?mini=true&title=Terraform+AZURE+FIREWALL&url=https://github.com/clouddrove/terraform-azure-firewall'>
+<a href='https://www.linkedin.com/shareArticle?mini=true&title=Terraform+AZURE+STORAGE&url=https://github.com/clouddrove/terraform-azure-storage'>
   <img title="Share on LinkedIn" src="https://user-images.githubusercontent.com/50652676/62817742-4e339e80-bb59-11e9-87b9-a1f68cae1049.png" />
 </a>
-<a href='https://twitter.com/intent/tweet/?text=Terraform+AZURE+FIREWALL&url=https://github.com/clouddrove/terraform-azure-firewall'>
+<a href='https://twitter.com/intent/tweet/?text=Terraform+AZURE+STORAGE&url=https://github.com/clouddrove/terraform-azure-storage'>
   <img title="Share on Twitter" src="https://user-images.githubusercontent.com/50652676/62817740-4c69db00-bb59-11e9-8a79-3580fbbf6d5c.png" />
 </a>
 
@@ -65,144 +65,65 @@ This module has a few dependencies:
 ## Examples
 
 
-**IMPORTANT:** Since the `master` branch used in `source` varies based on new modifications, we suggest that you use the release versions [here](https://github.com/clouddrove/terraform-azure-firewall/releases).
+**IMPORTANT:** Since the `master` branch used in `source` varies based on new modifications, we suggest that you use the release versions [here](https://github.com/clouddrove/terraform-azure-storage/releases).
 
 
 ### Simple Example
 Here is an example of how you can use this module in your inventory structure:
 ```hcl
-  module "firewall" {
-    depends_on           = [module.name_specific_subnet]
-    source               = "clouddrove/firewall/azure"
-    name                 = "app"
-    environment          = "test"
-    label_order          = ["name", "environment"]
-    resource_group_name  = module.resource_group.resource_group_name
-    location             = module.resource_group.resource_group_location
-    subnet_id            = module.name_specific_subnet.specific_subnet_id[0]
-    public_ip_names     = ["vpn_test", "vnet_test"]
+  module "storage" {
+    depends_on                = [module.resource_group]
+    source                    = "clouddrove/storage/azure"
+    name                      = "app"
+    environment               = "test"
+    label_order               = ["name", "environment"]
+    resource_group_name       = module.resource_group.resource_group_name
+    location                  = module.resource_group.resource_group_location
+    storage_account_name      = "storagestartac"
+    account_kind              = "StorageV2"
+    account_tier              = "Standard"
+    account_replication_type  = "GRS"
+    enable_https_traffic_only = true
+    is_hns_enabled            = true
+    sftp_enabled              = true
 
-  # additional_public_ips = [{
-  # name = "public-ip_name",
-  # public_ip_address_id = "public-ip_resource_id"
-  #   } ]
-
-
-
-   dnat-destination_ip = false // To be true when public ip associated with firewall is known and dnat policy is to be created.
-
-application_rule_collection = [
-  {
-    name     = "example_app_policy"
-    priority = 200
-    action   = "Allow"
-    rules = [
+    network_rules = [
       {
-        name              = "app_test"
-        source_addresses  = ["*"] // ["X.X.X.X"]
-        destination_fqdns = ["*"] // ["X.X.X.X"]
-        protocols = [
-          {
-            port = "443"
-            type = "Https"
-          },
-          {
-            port = "80"
-            type = "Http"
-          }
-        ]
+          default_action = "Deny"
+          ip_rules       = ["0.0.0.0/0"]
+          bypass         = ["AzureServices"]
       }
     ]
-  }
-]
 
-network_rule_collection = [
-  {
-    name     = "example_network_policy"
-    priority = "100"
-    action   = "Allow"
-    rules = [
-      {
-        name                  = "ssh"
-        protocols             = ["TCP"]
-        source_addresses      = ["*"] // ["X.X.X.X"]
-        destination_addresses = ["*"] // ["X.X.X.X"]
-        destination_ports     = ["22"]
-      }
 
+    ##   Storage Account Threat Protection
+    enable_advanced_threat_protection = true
+
+    ##   Storage Container
+    containers_list = [
+      { name = "app-test", access_type = "private" },
     ]
-  },
-  {
-    name     = "example_network_policy-2"
-    priority = "101"
-    action   = "Allow"
-    rules = [
+
+    ##   Storage File Share
+    file_shares = [
+      { name = "fileshare1", quota = 5 },
+    ]
+
+    ##   Storage Tables
+    tables = ["table1"]
+
+    ## Storage Queues
+    queues = ["queue1"]
+
+    management_policy = [
       {
-        name                  = "smtp"
-        protocols             = ["TCP"]
-        source_addresses      = ["*"] // ["X.X.X.X"]
-        destination_addresses = ["*"] // ["X.X.X.X"]
-        destination_ports     = ["587"]
+        prefix_match               = ["app-test/folder_path"]
+        tier_to_cool_after_days    = 0
+        tier_to_archive_after_days = 50
+        delete_after_days          = 100
+        snapshot_delete_after_days = 30
       }
     ]
-  }
-]
-
-nat_rule_collection = [
-  {
-    name     = "example_nat_policy"
-    priority = "101"
-    rules = [
-      {
-        name                = "http"
-        protocols           = ["TCP"]
-        source_addresses    = ["*"] // ["X.X.X.X"]
-        destination_ports   = ["80"]
-        source_addresses    = ["*"]
-        translated_port     = "80"
-        translated_address  = "X.X.X.X"
-        destination_address = "X.X.X.X" //Public ip associated with firewall
-
-      },
-      {
-        name                = "https"
-        protocols           = ["TCP"]
-        destination_ports   = ["443"]
-        source_addresses    = ["*"]
-        translated_port     = "443"
-        translated_address  = "X.X.X.X"
-        destination_address = "X.X.X.X" //Public ip associated with firewall
-
-      }
-    ]
-  },
-
-  {
-    name     = "example_nat_policy-2"
-    priority = "100"
-    rules = [
-      {
-        name                = "http"
-        protocols           = ["TCP"]
-        source_addresses    = ["*"] // ["X.X.X.X"]
-        destination_ports   = ["80"]
-        translated_port     = "80"
-        translated_address  = "X.X.X.X " //"10.30.0.194"
-        destination_address = "X.X.X.X"  //Public ip associated with firewall
-
-      },
-      {
-        name                = "https"
-        protocols           = ["TCP"]
-        source_addresses    = ["*"] // ["X.X.X.X"]
-        destination_ports   = ["443"]
-        translated_port     = "443"
-        translated_address  = "X.X.X.X"
-        destination_address = "X.X.X.X" //Public ip associated with firewall
-      }
-    ]
-  }
- ]
 }
 
   ```
@@ -216,40 +137,49 @@ nat_rule_collection = [
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| additional\_public\_ips | List of additional public ips' ids to attach to the firewall. | <pre>list(object({<br>    name                 = string,<br>    public_ip_address_id = string<br>  }))</pre> | `[]` | no |
-| app\_policy\_collection\_group | (optional) Name of app policy group | `string` | `"DefaultApplicationRuleCollectionGroup"` | no |
-| application\_rule\_collection | One or more application\_rule\_collection blocks as defined below.. | `map` | `{}` | no |
-| dnat-destination\_ip | Variable to specify that you have destination ip to attach to policy or not.(Destination ip is public ip that is attached to firewall) | `bool` | `false` | no |
-| dns\_servers | DNS Servers to use with Azure Firewall. Using this also activate DNS Proxy. | `list(string)` | `null` | no |
+| access\_tier | Defines the access tier for BlobStorage and StorageV2 accounts. Valid options are Hot and Cool. | `string` | `"Hot"` | no |
+| account\_kind | The type of storage account. Valid options are BlobStorage, BlockBlobStorage, FileStorage, Storage and StorageV2. | `string` | `"StorageV2"` | no |
+| account\_replication\_type | Defines the type of replication to use for this storage account. Valid options are LRS, GRS, RAGRS, ZRS, GZRS and RAGZRS. Changing this forces a new resource to be created when types LRS, GRS and RAGRS are changed to ZRS, GZRS or RAGZRS and vice versa. | `string` | `""` | no |
+| account\_tier | Defines the Tier to use for this storage account. Valid options are Standard and Premium. For BlockBlobStorage and FileStorage accounts only Premium is valid. Changing this forces a new resource to be created. | `string` | `"Standard"` | no |
+| containers\_list | List of containers to create and their access levels. | `list(object({ name = string, access_type = string }))` | `[]` | no |
+| enable\_advanced\_threat\_protection | Boolean flag which controls if advanced threat protection is enabled. | `bool` | `false` | no |
+| enable\_https\_traffic\_only | Boolean flag which forces HTTPS if enabled, see here for more information. | `bool` | `true` | no |
 | enabled | Set to false to prevent the module from creating any resources. | `bool` | `true` | no |
 | environment | Environment (e.g. `prod`, `dev`, `staging`). | `string` | `""` | no |
-| firewall\_private\_ip\_ranges | A list of SNAT private CIDR IP ranges, or the special string `IANAPrivateRanges`, which indicates Azure Firewall does not SNAT when the destination IP address is a private range per IANA RFC 1918. | `list(string)` | `null` | no |
+| file\_shares | List of containers to create and their access levels. | `list(object({ name = string, quota = number }))` | `[]` | no |
+| is\_hns\_enabled | Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2. Changing this forces a new resource to be created. | `bool` | `false` | no |
 | label\_order | Label order, e.g. sequence of application name and environment `name`,`environment`,'attribute' [`webserver`,`qa`,`devops`,`public`,] . | `list(any)` | `[]` | no |
-| location | The location/region where the virtual network is created. Changing this forces a new resource to be created. | `string` | `""` | no |
+| location | The location/region to keep all your network resources. To get the list of all locations with table format from azure cli, run 'az account list-locations -o table' | `string` | `"North Europe"` | no |
 | managedby | ManagedBy, eg ''. | `string` | `""` | no |
+| management\_policy | Configure Azure Storage firewalls and virtual networks | <pre>list(object({<br>    prefix_match               = set(string),<br>    tier_to_cool_after_days    = number,<br>    tier_to_archive_after_days = number,<br>    delete_after_days          = number,<br>    snapshot_delete_after_days = number<br>  }))</pre> | `[]` | no |
+| min\_tls\_version | The minimum supported TLS version for the storage account | `string` | `"TLS1_2"` | no |
 | name | Name  (e.g. `app` or `cluster`). | `string` | `""` | no |
-| nat\_policy\_collection\_group | (optional) Name of nat policy group | `string` | `"DefaultDnatRuleCollectionGroup"` | no |
-| nat\_rule\_collection | One or more nat\_rule\_collection blocks as defined below. | `map` | `{}` | no |
-| net\_policy\_collection\_group | (optional) Name of network policy group | `string` | `"DefaultNetworkRuleCollectionGroup"` | no |
-| network\_rule\_collection | One or more network\_rule\_collection blocks as defined below. | `map` | `{}` | no |
-| public\_ip\_allocation\_method | Defines the allocation method for this IP address. Possible values are Static or Dynamic | `string` | `"Static"` | no |
-| public\_ip\_names | n/a | `list(string)` | `[]` | no |
-| public\_ip\_sku | The SKU of the Public IP. Accepted values are Basic and Standard. Defaults to Basic | `string` | `"Standard"` | no |
+| network\_rules | List of objects that represent the configuration of each network rules. | `map` | `{}` | no |
+| queues | List of storages queues | `list(string)` | `[]` | no |
 | repository | Terraform current module repo | `string` | `""` | no |
 | resource\_group\_name | A container that holds related resources for an Azure solution | `string` | `""` | no |
-| sku\_name | (optional) describe your variable | `string` | `"AZFW_VNet"` | no |
-| sku\_tier | Specifies the firewall sku tier | `string` | `"Standard"` | no |
-| subnet\_id | Subnet ID | `string` | `""` | no |
+| sftp\_enabled | Boolean, enable SFTP for the storage account | `bool` | `false` | no |
+| soft\_delete\_retention | Number of retention days for soft delete. If set to null it will disable soft delete all together. | `number` | `30` | no |
+| storage\_account\_name | The name of the azure storage account | `string` | `""` | no |
+| tables | List of storage tables. | `list(string)` | `[]` | no |
 | tags | A map of tags to add to all resources | `map(string)` | `{}` | no |
-| threat\_intel\_mode | (Optional) The operation mode for threat intelligence-based filtering. Possible values are: Off, Alert, Deny. Defaults to Alert. | `string` | `"Alert"` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| firewall\_id | Firewall generated id |
-| firewall\_name | Firewall name |
-| private\_ip\_address | Firewall private IP |
+| containers | Map of containers. |
+| file\_shares | Map of Storage SMB file shares. |
+| queues | Map of Storage SMB file shares. |
+| storage\_account\_id | The ID of the storage account. |
+| storage\_account\_name | The name of the storage account. |
+| storage\_account\_primary\_location | The primary location of the storage account |
+| storage\_account\_primary\_web\_endpoint | The endpoint URL for web storage in the primary location. |
+| storage\_account\_primary\_web\_host | The hostname with port if applicable for web storage in the primary location. |
+| storage\_primary\_access\_key | The primary access key for the storage account |
+| storage\_primary\_connection\_string | The primary connection string for the storage account |
+| storage\_secondary\_access\_key | The primary access key for the storage account. |
+| tables | Map of Storage SMB file shares. |
 
 
 
@@ -265,9 +195,9 @@ You need to run the following command in the testing folder:
 
 
 ## Feedback 
-If you come accross a bug or have any feedback, please log it in our [issue tracker](https://github.com/clouddrove/terraform-azure-firewall/issues), or feel free to drop us an email at [hello@clouddrove.com](mailto:hello@clouddrove.com).
+If you come accross a bug or have any feedback, please log it in our [issue tracker](https://github.com/clouddrove/terraform-azure-storage/issues), or feel free to drop us an email at [hello@clouddrove.com](mailto:hello@clouddrove.com).
 
-If you have found it worth your time, go ahead and give us a ★ on [our GitHub](https://github.com/clouddrove/terraform-azure-firewall)!
+If you have found it worth your time, go ahead and give us a ★ on [our GitHub](https://github.com/clouddrove/terraform-azure-storage)!
 
 ## About us
 
