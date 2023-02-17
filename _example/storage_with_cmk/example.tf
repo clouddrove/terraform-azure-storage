@@ -66,7 +66,7 @@ module "vault" {
   enable_private_endpoint = true
   ##RBAC
   enable_rbac_authorization = true
-  principal_id              = ["71d1a02f-3ae9-4ab9-8fec-d9b1166d7c97", "c2f1e13d-1ad3-4306-8905-015c99470c43"]
+  principal_id              = ["71d1a0XXXXXXXXXXXXXXX1166d7c97", "c2fXXXXXXXXXXXXXXXXXX0c43"]
   role_definition_name      = ["Key Vault Administrator", ]
 
 }
@@ -85,7 +85,7 @@ module "storage" {
   account_kind              = "BlockBlobStorage"
   account_tier              = "Premium"
   identity_type             = "UserAssigned"
-  principal_id              = ["71d1a02f-3ae9-4ab9-8fec-d9b1166d7c97", "c2f1e13d-1ad3-4306-8905-015c99470c43"]
+  principal_id              = ["71dXXXXXXXXXXXXXXXXXXXXXxxc97", "c2fX6XXXXXXXXXXXXXXXXXXXXXXX70c43"]
   role_definition_name      = ["Key Vault Administrator"]
   account_replication_type  = "ZRS"
   enable_https_traffic_only = true
