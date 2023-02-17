@@ -8,7 +8,7 @@ module "resource_group" {
   source = "clouddrove/resource-group/azure"
 
   label_order = ["name", "environment", ]
-  name        = "app"
+  name        = "appeee"
   environment = "test"
   location    = "North Europe"
 }
@@ -17,7 +17,8 @@ module "resource_group" {
 ##    Storage Account
 module "storage" {
   depends_on                = [module.resource_group]
-  source                    = "../"
+  source                    = "../.."
+  default_enabled           = true
   resource_group_name       = module.resource_group.resource_group_name
   location                  = module.resource_group.resource_group_location
   storage_account_name      = "storagestartac"
