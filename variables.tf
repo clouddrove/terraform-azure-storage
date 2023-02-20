@@ -30,10 +30,10 @@ variable "managedby" {
   description = "ManagedBy, eg ''."
 }
 
-variable "enabled" {
+variable "default_enabled" {
   type        = bool
   description = "Set to false to prevent the module from creating any resources."
-  default     = true
+  default     = false
 }
 
 variable "tags" {
@@ -111,6 +111,10 @@ variable "network_rules" {
   default     = {}
   description = "List of objects that represent the configuration of each network rules."
 }
+variable "network_rule" {
+  default     = {}
+  description = "List of objects that represent the configuration of each network rules."
+}
 
 variable "is_hns_enabled" {
   description = "Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2. Changing this forces a new resource to be created."
@@ -160,3 +164,68 @@ variable "management_policy" {
   default = []
 }
 
+variable "user_assigned_identity_id" {
+  type        = string
+  default     = null
+  description = " The ID of a user assigned identity."
+}
+# Identity
+variable "identity_type" {
+  description = "Specifies the type of Managed Service Identity that should be configured on this Storage Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both)."
+  type        = string
+  default     = "SystemAssigned"
+}
+
+variable "identity_ids" {
+  description = "Specifies a list of User Assigned Managed Identity IDs to be assigned to this Storage Account."
+  type        = list(string)
+  default     = null
+}
+variable "key_vault_id" {
+  type    = string
+  default = null
+}
+variable "principal_id" {
+  type        = list(string)
+  default     = []
+  description = " The ID of the Principal (User, Group or Service Principal) to assign the Role Definition to. Changing this forces a new resource to be created."
+}
+
+variable "cmk_encryption_enabled" {
+  type    = bool
+  default = false
+}
+variable "shared_access_key_enabled" {
+  type        = bool
+  default     = true
+  description = " Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). The default value is true."
+}
+variable "infrastructure_encryption_enabled" {
+  type        = bool
+  default     = false
+  description = " Is infrastructure encryption enabled? Changing this forces a new resource to be created. Defaults to false."
+}
+variable "public_network_access_enabled" {
+  type        = bool
+  default     = true
+  description = "Whether the public network access is enabled? Defaults to true."
+}
+variable "default_to_oauth_authentication" {
+  type        = bool
+  default     = false
+  description = "Default to Azure Active Directory authorization in the Azure portal when accessing the Storage Account. The default value is false"
+}
+variable "cross_tenant_replication_enabled" {
+  type        = bool
+  default     = true
+  description = "Should cross Tenant replication be enabled? Defaults to true."
+}
+variable "allow_nested_items_to_be_public" {
+  type        = bool
+  default     = true
+  description = "Allow or disallow nested items within this Account to opt into being public. Defaults to true."
+}
+variable "object_id" {
+  type    = list(string)
+  default = []
+}

@@ -1,45 +1,49 @@
-output "storage_account_id" {
+output "default_storage_account_id" {
+  value       = join("", azurerm_storage_account.default_storage.*.id)
+  description = "The ID of the storage account."
+}
+
+output "default_storage_account_name" {
+  value       = join("", azurerm_storage_account.default_storage.*.name)
+  description = "The name of the storage account."
+}
+output "cmk_storage_account_id" {
   value       = join("", azurerm_storage_account.storage.*.id)
   description = "The ID of the storage account."
 }
 
-output "storage_account_name" {
+output "cmk_storage_account_name" {
   value       = join("", azurerm_storage_account.storage.*.name)
   description = "The name of the storage account."
 }
 
-output "storage_account_primary_location" {
-  value       = join("", azurerm_storage_account.storage.*.primary_location)
+output "default_storage_account_primary_location" {
+  value       = join("", azurerm_storage_account.default_storage.*.primary_location)
   description = "The primary location of the storage account"
 }
 
-output "storage_account_primary_web_endpoint" {
-  value       = join("", azurerm_storage_account.storage.*.primary_web_endpoint)
+output "default_storage_account_primary_web_endpoint" {
+  value       = join("", azurerm_storage_account.default_storage.*.primary_web_endpoint)
   description = "The endpoint URL for web storage in the primary location."
 }
 
-output "storage_account_primary_web_host" {
-  value       = join("", azurerm_storage_account.storage.*.primary_web_host)
+output "default_storage_account_primary_web_host" {
+  value       = join("", azurerm_storage_account.default_storage.*.primary_web_host)
   description = "The hostname with port if applicable for web storage in the primary location."
 }
 
-output "storage_primary_connection_string" {
+output "default_storage_primary_connection_string" {
   value       = join("", azurerm_storage_account.storage.*.primary_connection_string)
   sensitive   = true
   description = "The primary connection string for the storage account"
 }
 
-output "storage_primary_access_key" {
-  value       = join("", azurerm_storage_account.storage.*.primary_access_key)
+output "default_storage_primary_access_key" {
+  value       = join("", azurerm_storage_account.default_storage.*.primary_access_key)
   sensitive   = true
   description = "The primary access key for the storage account"
 }
 
-output "storage_secondary_access_key" {
-  value       = join("", azurerm_storage_account.storage.*.secondary_access_key)
-  sensitive   = true
-  description = "The primary access key for the storage account."
-}
 
 output "containers" {
   value       = { for c in azurerm_storage_container.container : c.name => c.id }
