@@ -92,7 +92,7 @@ resource "azurerm_role_assignment" "identity_assigned" {
   count                = var.cmk_encryption_enabled ? 1 : 0
   principal_id         = join("", azurerm_user_assigned_identity.identity.*.principal_id)
   scope                = var.key_vault_id
-  role_definition_name = element(var.role_definition_name, count.index)
+  role_definition_name = "Key Vault Crypto Service Encryption User"
 }
 
 resource "azurerm_key_vault_key" "kvkey" {
@@ -128,11 +128,12 @@ resource "azurerm_advanced_threat_protection" "atp" {
   target_resource_id = var.cmk_encryption_enabled ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
   enabled            = var.enable_advanced_threat_protection
 }
+
 resource "azurerm_key_vault_access_policy" "example" {
-  count        = var.cmk_encryption_enabled ? 1 : 0
+  count        = var.cmk_encryption_enabled ? length(var.object_id) : 0
   key_vault_id = var.key_vault_id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
+  object_id    = element(var.object_id, count.index)
 
   key_permissions = [
     "Create",

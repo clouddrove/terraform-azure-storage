@@ -190,11 +190,7 @@ variable "principal_id" {
   default     = []
   description = " The ID of the Principal (User, Group or Service Principal) to assign the Role Definition to. Changing this forces a new resource to be created."
 }
-variable "role_definition_name" {
-  type        = list(string)
-  default     = [""]
-  description = "The name of a built-in Role. Changing this forces a new resource to be created. Conflicts with role_definition_id"
-}
+
 variable "cmk_encryption_enabled" {
   type    = bool
   default = false
@@ -228,4 +224,8 @@ variable "allow_nested_items_to_be_public" {
   type        = bool
   default     = true
   description = "Allow or disallow nested items within this Account to opt into being public. Defaults to true."
+}
+variable "object_id" {
+  type    = list(string)
+  default = []
 }

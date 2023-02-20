@@ -49,7 +49,7 @@ module "vault" {
   depends_on = [module.resource_group, module.vnet]
   source     = "clouddrove/key-vault/azure"
 
-  name        = "apaplpzovdcc"
+  name        = "apaplzkvdcc"
   environment = "test"
   label_order = ["name", "environment", ]
 
@@ -66,7 +66,7 @@ module "vault" {
   enable_private_endpoint = true
   ##RBAC
   enable_rbac_authorization = true
-  principal_id              = ["71d1a0XXXXXXXXXXXXXXX1166d7c97", "c2fXXXXXXXXXXXXXXXXXX0c43"]
+  principal_id              = ["71d1a02f-3ae9-4ab9-8fec-d9b1166d7c97", ]
   role_definition_name      = ["Key Vault Administrator", ]
 
 }
@@ -85,8 +85,7 @@ module "storage" {
   account_kind              = "BlockBlobStorage"
   account_tier              = "Premium"
   identity_type             = "UserAssigned"
-  principal_id              = ["71dXXXXXXXXXXXXXXXXXXXXXxxc97", "c2fX6XXXXXXXXXXXXXXXXXXXXXXX70c43"]
-  role_definition_name      = ["Key Vault Administrator"]
+  object_id                 = ["71d1a02f-3ae9-4ab9-8fec-d9b1166d7c97", "a9379ef2-6dae-4ef5-8e17-0b91c48a0ad6"]
   account_replication_type  = "ZRS"
   enable_https_traffic_only = true
   is_hns_enabled            = true
