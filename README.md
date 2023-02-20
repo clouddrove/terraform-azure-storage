@@ -70,6 +70,7 @@ This module has a few dependencies:
 
 ### Simple Example
 Here is an example of how you can use this module in your inventory structure:
+#### default storage
 ```hcl
   module "storage" {
     depends_on                = [module.resource_group]
@@ -125,7 +126,60 @@ Here is an example of how you can use this module in your inventory structure:
       }
     ]
 }
+  ```
+####  storage with cmk encryption
+```hcl
+  module "storage" {
+    depends_on                = [module.resource_group]
+    source                    = "clouddrove/storage/azure"
+    name                      = "app"
+    environment               = "test"
+    label_order               = ["name", "environment"]
+    resource_group_name       = module.resource_group.resource_group_name
+    location                  = module.resource_group.resource_group_location
+    storage_account_name      = "storagkistaptac"
+    account_kind              = "BlockBlobStorage"
+    account_tier              = "Premium"
+    identity_type             = "UserAssigned"
+    object_id                 = ["7XXXXXXXXXXXXXXXX166d7c97", "c2f1eXXXXXXXXXXXXXXXX470c43"]
+    account_replication_type  = "ZRS"
+    enable_https_traffic_only = true
+    is_hns_enabled            = true
+    sftp_enabled              = true
+    #### when CMK encryption enable required key-vault id
+    ###customer_managed_key can only be set when the account_kind is set to StorageV2 or account_tier set to Premium, and the identity type is UserAssigned.
+    cmk_encryption_enabled = true
+    key_vault_id           = module.vault.id
+    ###This can only be true when account_kind is StorageV2 or when account_tier is Premium and account_kind is one of BlockBlobStorage or FileStorage.
+    infrastructure_encryption_enabled = true
 
+    network_rules = [
+      {
+        default_action = "Deny"
+        ip_rules       = ["0.0.0.0/0"]
+        bypass         = ["AzureServices"]
+      }
+    ]
+
+
+    ##   Storage Account Threat Protection
+    enable_advanced_threat_protection = true
+
+    ##   Storage Container
+    containers_list = [
+      { name = "app-test", access_type = "private" },
+    ]
+
+    management_policy = [
+      {
+        prefix_match               = ["app-test/folder_path"]
+        tier_to_cool_after_days    = 0
+        tier_to_archive_after_days = 50
+        delete_after_days          = 100
+        snapshot_delete_after_days = 30
+      }
+    ]
+  }
   ```
 
 
@@ -141,44 +195,59 @@ Here is an example of how you can use this module in your inventory structure:
 | account\_kind | The type of storage account. Valid options are BlobStorage, BlockBlobStorage, FileStorage, Storage and StorageV2. | `string` | `"StorageV2"` | no |
 | account\_replication\_type | Defines the type of replication to use for this storage account. Valid options are LRS, GRS, RAGRS, ZRS, GZRS and RAGZRS. Changing this forces a new resource to be created when types LRS, GRS and RAGRS are changed to ZRS, GZRS or RAGZRS and vice versa. | `string` | `""` | no |
 | account\_tier | Defines the Tier to use for this storage account. Valid options are Standard and Premium. For BlockBlobStorage and FileStorage accounts only Premium is valid. Changing this forces a new resource to be created. | `string` | `"Standard"` | no |
+| allow\_nested\_items\_to\_be\_public | Allow or disallow nested items within this Account to opt into being public. Defaults to true. | `bool` | `true` | no |
+| cmk\_encryption\_enabled | n/a | `bool` | `false` | no |
 | containers\_list | List of containers to create and their access levels. | `list(object({ name = string, access_type = string }))` | `[]` | no |
+| cross\_tenant\_replication\_enabled | Should cross Tenant replication be enabled? Defaults to true. | `bool` | `true` | no |
+| default\_enabled | Set to false to prevent the module from creating any resources. | `bool` | `false` | no |
+| default\_to\_oauth\_authentication | Default to Azure Active Directory authorization in the Azure portal when accessing the Storage Account. The default value is false | `bool` | `false` | no |
 | enable\_advanced\_threat\_protection | Boolean flag which controls if advanced threat protection is enabled. | `bool` | `false` | no |
 | enable\_https\_traffic\_only | Boolean flag which forces HTTPS if enabled, see here for more information. | `bool` | `true` | no |
-| enabled | Set to false to prevent the module from creating any resources. | `bool` | `true` | no |
 | environment | Environment (e.g. `prod`, `dev`, `staging`). | `string` | `""` | no |
 | file\_shares | List of containers to create and their access levels. | `list(object({ name = string, quota = number }))` | `[]` | no |
+| identity\_ids | Specifies a list of User Assigned Managed Identity IDs to be assigned to this Storage Account. | `list(string)` | `null` | no |
+| identity\_type | Specifies the type of Managed Service Identity that should be configured on this Storage Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both). | `string` | `"SystemAssigned"` | no |
+| infrastructure\_encryption\_enabled | Is infrastructure encryption enabled? Changing this forces a new resource to be created. Defaults to false. | `bool` | `false` | no |
 | is\_hns\_enabled | Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2. Changing this forces a new resource to be created. | `bool` | `false` | no |
+| key\_vault\_id | n/a | `string` | `null` | no |
 | label\_order | Label order, e.g. sequence of application name and environment `name`,`environment`,'attribute' [`webserver`,`qa`,`devops`,`public`,] . | `list(any)` | `[]` | no |
 | location | The location/region to keep all your network resources. To get the list of all locations with table format from azure cli, run 'az account list-locations -o table' | `string` | `"North Europe"` | no |
 | managedby | ManagedBy, eg ''. | `string` | `""` | no |
 | management\_policy | Configure Azure Storage firewalls and virtual networks | <pre>list(object({<br>    prefix_match               = set(string),<br>    tier_to_cool_after_days    = number,<br>    tier_to_archive_after_days = number,<br>    delete_after_days          = number,<br>    snapshot_delete_after_days = number<br>  }))</pre> | `[]` | no |
 | min\_tls\_version | The minimum supported TLS version for the storage account | `string` | `"TLS1_2"` | no |
 | name | Name  (e.g. `app` or `cluster`). | `string` | `""` | no |
+| network\_rule | List of objects that represent the configuration of each network rules. | `map` | `{}` | no |
 | network\_rules | List of objects that represent the configuration of each network rules. | `map` | `{}` | no |
+| object\_id | n/a | `list(string)` | `[]` | no |
+| principal\_id | The ID of the Principal (User, Group or Service Principal) to assign the Role Definition to. Changing this forces a new resource to be created. | `list(string)` | `[]` | no |
+| public\_network\_access\_enabled | Whether the public network access is enabled? Defaults to true. | `bool` | `true` | no |
 | queues | List of storages queues | `list(string)` | `[]` | no |
 | repository | Terraform current module repo | `string` | `""` | no |
 | resource\_group\_name | A container that holds related resources for an Azure solution | `string` | `""` | no |
 | sftp\_enabled | Boolean, enable SFTP for the storage account | `bool` | `false` | no |
+| shared\_access\_key\_enabled | Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). The default value is true. | `bool` | `true` | no |
 | soft\_delete\_retention | Number of retention days for soft delete. If set to null it will disable soft delete all together. | `number` | `30` | no |
 | storage\_account\_name | The name of the azure storage account | `string` | `""` | no |
 | tables | List of storage tables. | `list(string)` | `[]` | no |
 | tags | A map of tags to add to all resources | `map(string)` | `{}` | no |
+| user\_assigned\_identity\_id | The ID of a user assigned identity. | `string` | `null` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
+| cmk\_storage\_account\_id | The ID of the storage account. |
+| cmk\_storage\_account\_name | The name of the storage account. |
 | containers | Map of containers. |
+| default\_storage\_account\_id | The ID of the storage account. |
+| default\_storage\_account\_name | The name of the storage account. |
+| default\_storage\_account\_primary\_location | The primary location of the storage account |
+| default\_storage\_account\_primary\_web\_endpoint | The endpoint URL for web storage in the primary location. |
+| default\_storage\_account\_primary\_web\_host | The hostname with port if applicable for web storage in the primary location. |
+| default\_storage\_primary\_access\_key | The primary access key for the storage account |
+| default\_storage\_primary\_connection\_string | The primary connection string for the storage account |
 | file\_shares | Map of Storage SMB file shares. |
 | queues | Map of Storage SMB file shares. |
-| storage\_account\_id | The ID of the storage account. |
-| storage\_account\_name | The name of the storage account. |
-| storage\_account\_primary\_location | The primary location of the storage account |
-| storage\_account\_primary\_web\_endpoint | The endpoint URL for web storage in the primary location. |
-| storage\_account\_primary\_web\_host | The hostname with port if applicable for web storage in the primary location. |
-| storage\_primary\_access\_key | The primary access key for the storage account |
-| storage\_primary\_connection\_string | The primary connection string for the storage account |
-| storage\_secondary\_access\_key | The primary access key for the storage account. |
 | tables | Map of Storage SMB file shares. |
 
 
