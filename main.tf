@@ -168,7 +168,7 @@ resource "azurerm_storage_container" "container" {
 resource "azurerm_storage_share" "fileshare" {
   count                = length(var.file_shares)
   name                 = var.file_shares[count.index].name
-  storage_account_name = join("", azurerm_storage_account.default_storage.*.name)
+  storage_account_name = var.cmk_encryption_enabled ? join("", azurerm_storage_account.storage.*.name) : join("", azurerm_storage_account.default_storage.*.name)
   quota                = var.file_shares[count.index].quota
 }
 
@@ -176,14 +176,14 @@ resource "azurerm_storage_share" "fileshare" {
 resource "azurerm_storage_table" "tables" {
   count                = length(var.tables)
   name                 = var.tables[count.index]
-  storage_account_name = join("", azurerm_storage_account.default_storage.*.name)
+  storage_account_name = var.cmk_encryption_enabled ? join("", azurerm_storage_account.storage.*.name) : join("", azurerm_storage_account.default_storage.*.name)
 }
 
 ## Storage Queues
 resource "azurerm_storage_queue" "queues" {
   count                = length(var.queues)
   name                 = var.queues[count.index]
-  storage_account_name = join("", azurerm_storage_account.default_storage.*.name)
+  storage_account_name = var.cmk_encryption_enabled ? join("", azurerm_storage_account.storage.*.name) : join("", azurerm_storage_account.default_storage.*.name)
 }
 
 ## Management Policies
@@ -214,3 +214,49 @@ resource "azurerm_storage_management_policy" "lifecycle_management" {
     }
   }
 }
+
+# Create Private Endpint
+resource "azurerm_private_endpoint" "endpoint" {
+  count               = var.enabled_private_endpoint ? 1 : 0 
+  name                = format("%s-pe-storage", module.labels.id)
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = join("", var.subnet_id)
+  private_dns_zone_group {
+    name                 = format("%s-storage-group", module.labels.id)
+    private_dns_zone_ids = azurerm_private_dns_zone.dnszone1.*.id 
+  }
+  private_service_connection {
+    name                           = format("%s-psc-storage", module.labels.id)
+    private_connection_resource_id = var.cmk_encryption_enabled ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
+    is_manual_connection           = false
+    subresource_names              = ["blob"]
+  }
+}
+
+# Create Private DNS Zone
+resource "azurerm_private_dns_zone" "dnszone1" {
+  count               = var.enabled_private_endpoint ? 1 : 0 
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = var.resource_group_name
+}
+
+# Create Private DNS Zone Network Link
+resource "azurerm_private_dns_zone_virtual_network_link" "network_link" {
+  count               = var.enabled_private_endpoint ? 1 : 0 
+  name                  = format("%s-pdz-vnet-link-storage", module.labels.id)
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.dnszone1.*.name[0]
+  virtual_network_id    = var.virtual_network_id
+}
+
+
+
+# Create DNS A Record
+# resource "azurerm_private_dns_a_record" "dns_a" {
+#   name                = "kopicloudnortheurope"
+#   zone_name           = azurerm_private_dns_zone.dns-zone.name
+#   resource_group_name = azurerm_resource_group.network-rg.name
+#   ttl                 = 300
+#   records             = [azurerm_private_endpoint.endpoint.private_service_connection.0.private_ip_address]
+# }

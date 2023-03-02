@@ -229,3 +229,21 @@ variable "object_id" {
   type    = list(string)
   default = []
 }
+
+variable "subnet_id" {
+  type        = list(string)
+  default     = null
+  description = "Subnet to be used for private endpoint"
+}
+
+variable "virtual_network_id" {
+  type        = string
+  default     = null
+  description = "Virtual Network to be used for private endpoint"
+}
+
+variable "enabled_private_endpoint" {
+  type        = bool
+  default     = false
+  description = "enable or disable private endpoint to storage account"
+}
