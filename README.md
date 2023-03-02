@@ -203,6 +203,7 @@ Here is an example of how you can use this module in your inventory structure:
 | default\_to\_oauth\_authentication | Default to Azure Active Directory authorization in the Azure portal when accessing the Storage Account. The default value is false | `bool` | `false` | no |
 | enable\_advanced\_threat\_protection | Boolean flag which controls if advanced threat protection is enabled. | `bool` | `false` | no |
 | enable\_https\_traffic\_only | Boolean flag which forces HTTPS if enabled, see here for more information. | `bool` | `true` | no |
+| enabled\_private\_endpoint | enable or disable private endpoint to storage account | `bool` | `false` | no |
 | environment | Environment (e.g. `prod`, `dev`, `staging`). | `string` | `""` | no |
 | file\_shares | List of containers to create and their access levels. | `list(object({ name = string, quota = number }))` | `[]` | no |
 | identity\_ids | Specifies a list of User Assigned Managed Identity IDs to be assigned to this Storage Account. | `list(string)` | `null` | no |
@@ -228,9 +229,11 @@ Here is an example of how you can use this module in your inventory structure:
 | shared\_access\_key\_enabled | Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). The default value is true. | `bool` | `true` | no |
 | soft\_delete\_retention | Number of retention days for soft delete. If set to null it will disable soft delete all together. | `number` | `30` | no |
 | storage\_account\_name | The name of the azure storage account | `string` | `""` | no |
+| subnet\_id | Subnet to be used for private endpoint | `list(string)` | `null` | no |
 | tables | List of storage tables. | `list(string)` | `[]` | no |
 | tags | A map of tags to add to all resources | `map(string)` | `{}` | no |
 | user\_assigned\_identity\_id | The ID of a user assigned identity. | `string` | `null` | no |
+| virtual\_network\_id | Virtual Network to be used for private endpoint | `string` | `null` | no |
 
 ## Outputs
 
