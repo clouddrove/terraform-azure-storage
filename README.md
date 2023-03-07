@@ -195,6 +195,9 @@ Here is an example of how you can use this module in your inventory structure:
 | account\_kind | The type of storage account. Valid options are BlobStorage, BlockBlobStorage, FileStorage, Storage and StorageV2. | `string` | `"StorageV2"` | no |
 | account\_replication\_type | Defines the type of replication to use for this storage account. Valid options are LRS, GRS, RAGRS, ZRS, GZRS and RAGZRS. Changing this forces a new resource to be created when types LRS, GRS and RAGRS are changed to ZRS, GZRS or RAGZRS and vice versa. | `string` | `""` | no |
 | account\_tier | Defines the Tier to use for this storage account. Valid options are Standard and Premium. For BlockBlobStorage and FileStorage accounts only Premium is valid. Changing this forces a new resource to be created. | `string` | `"Standard"` | no |
+| addon\_resource\_group\_name | The name of the addon vnet resource group | `string` | `""` | no |
+| addon\_vent\_link | The name of the addon vnet | `bool` | `false` | no |
+| addon\_virtual\_network\_id | The name of the addon vnet link vnet id | `string` | `""` | no |
 | allow\_nested\_items\_to\_be\_public | Allow or disallow nested items within this Account to opt into being public. Defaults to true. | `bool` | `true` | no |
 | cmk\_encryption\_enabled | n/a | `bool` | `false` | no |
 | containers\_list | List of containers to create and their access levels. | `list(object({ name = string, access_type = string }))` | `[]` | no |
@@ -203,8 +206,11 @@ Here is an example of how you can use this module in your inventory structure:
 | default\_to\_oauth\_authentication | Default to Azure Active Directory authorization in the Azure portal when accessing the Storage Account. The default value is false | `bool` | `false` | no |
 | enable\_advanced\_threat\_protection | Boolean flag which controls if advanced threat protection is enabled. | `bool` | `false` | no |
 | enable\_https\_traffic\_only | Boolean flag which forces HTTPS if enabled, see here for more information. | `bool` | `true` | no |
-| enabled\_private\_endpoint | enable or disable private endpoint to storage account | `bool` | `false` | no |
+| enable\_private\_endpoint | enable or disable private endpoint to storage account | `bool` | `false` | no |
+| enabled | Set to false to prevent the module from creating any resources. | `bool` | `true` | no |
 | environment | Environment (e.g. `prod`, `dev`, `staging`). | `string` | `""` | no |
+| existing\_private\_dns\_zone | Name of the existing private DNS zone | `string` | `null` | no |
+| existing\_private\_dns\_zone\_resource\_group\_name | The name of the existing resource group | `string` | `""` | no |
 | file\_shares | List of containers to create and their access levels. | `list(object({ name = string, quota = number }))` | `[]` | no |
 | identity\_ids | Specifies a list of User Assigned Managed Identity IDs to be assigned to this Storage Account. | `list(string)` | `null` | no |
 | identity\_type | Specifies the type of Managed Service Identity that should be configured on this Storage Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both). | `string` | `"SystemAssigned"` | no |
@@ -213,11 +219,10 @@ Here is an example of how you can use this module in your inventory structure:
 | key\_vault\_id | n/a | `string` | `null` | no |
 | label\_order | Label order, e.g. sequence of application name and environment `name`,`environment`,'attribute' [`webserver`,`qa`,`devops`,`public`,] . | `list(any)` | `[]` | no |
 | location | The location/region to keep all your network resources. To get the list of all locations with table format from azure cli, run 'az account list-locations -o table' | `string` | `"North Europe"` | no |
-| managedby | ManagedBy, eg ''. | `string` | `""` | no |
+| managedby | ManagedBy, eg 'Identos'. | `string` | `""` | no |
 | management\_policy | Configure Azure Storage firewalls and virtual networks | <pre>list(object({<br>    prefix_match               = set(string),<br>    tier_to_cool_after_days    = number,<br>    tier_to_archive_after_days = number,<br>    delete_after_days          = number,<br>    snapshot_delete_after_days = number<br>  }))</pre> | `[]` | no |
 | min\_tls\_version | The minimum supported TLS version for the storage account | `string` | `"TLS1_2"` | no |
 | name | Name  (e.g. `app` or `cluster`). | `string` | `""` | no |
-| network\_rule | List of objects that represent the configuration of each network rules. | `map` | `{}` | no |
 | network\_rules | List of objects that represent the configuration of each network rules. | `map` | `{}` | no |
 | object\_id | n/a | `list(string)` | `[]` | no |
 | principal\_id | The ID of the Principal (User, Group or Service Principal) to assign the Role Definition to. Changing this forces a new resource to be created. | `list(string)` | `[]` | no |
@@ -229,11 +234,11 @@ Here is an example of how you can use this module in your inventory structure:
 | shared\_access\_key\_enabled | Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). The default value is true. | `bool` | `true` | no |
 | soft\_delete\_retention | Number of retention days for soft delete. If set to null it will disable soft delete all together. | `number` | `30` | no |
 | storage\_account\_name | The name of the azure storage account | `string` | `""` | no |
-| subnet\_id | Subnet to be used for private endpoint | `list(string)` | `null` | no |
+| subnet\_id | The resource ID of the subnet | `string` | `""` | no |
 | tables | List of storage tables. | `list(string)` | `[]` | no |
 | tags | A map of tags to add to all resources | `map(string)` | `{}` | no |
 | user\_assigned\_identity\_id | The ID of a user assigned identity. | `string` | `null` | no |
-| virtual\_network\_id | Virtual Network to be used for private endpoint | `string` | `null` | no |
+| virtual\_network\_id | The name of the virtual network | `string` | `""` | no |
 
 ## Outputs
 
