@@ -12,7 +12,7 @@ module "labels" {
 }
 
 resource "azurerm_storage_account" "storage" {
-  count                             = var.cmk_encryption_enabled ? 1 : 0
+  count                             = var.enabled && var.cmk_encryption_enabled ? 1 : 0
   depends_on                        = [azurerm_role_assignment.identity_assigned]
   name                              = var.storage_account_name
   resource_group_name               = var.resource_group_name
@@ -53,9 +53,8 @@ resource "azurerm_storage_account" "storage" {
   }
 }
 
-
 resource "azurerm_storage_account" "default_storage" {
-  count                             = var.default_enabled ? 1 : 0
+  count                             = var.enabled && var.default_enabled ? 1 : 0
   name                              = var.storage_account_name
   resource_group_name               = var.resource_group_name
   location                          = var.location
@@ -111,8 +110,6 @@ resource "azurerm_key_vault_key" "kvkey" {
   ]
 }
 
-
-
 # Network Rules
 resource "azurerm_storage_account_network_rules" "network-rules" {
   for_each                   = { for rule in var.network_rules : rule.default_action => rule }
@@ -154,7 +151,6 @@ resource "azurerm_key_vault_access_policy" "example" {
     "Get",
   ]
 }
-
 
 ## Storage Container
 resource "azurerm_storage_container" "container" {
@@ -215,48 +211,84 @@ resource "azurerm_storage_management_policy" "lifecycle_management" {
   }
 }
 
-# Create Private Endpint
-resource "azurerm_private_endpoint" "endpoint" {
-  count               = var.enabled_private_endpoint ? 1 : 0 
-  name                = format("%s-pe-storage", module.labels.id)
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  subnet_id           = join("", var.subnet_id)
-  private_dns_zone_group {
-    name                 = format("%s-storage-group", module.labels.id)
-    private_dns_zone_ids = azurerm_private_dns_zone.dnszone1.*.id 
-  }
+resource "azurerm_private_endpoint" "pep" {
+  count               = var.enable_private_endpoint ? 1 : 0
+  name                = format("%s-pe-kv", module.labels.id)
+  location            = local.location
+  resource_group_name = local.resource_group_name
+  subnet_id           = var.subnet_id
+  tags                = module.labels.tags
   private_service_connection {
-    name                           = format("%s-psc-storage", module.labels.id)
-    private_connection_resource_id = var.cmk_encryption_enabled ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
+    name                           = format("%s-psc-kv", module.labels.id)
     is_manual_connection           = false
+    private_connection_resource_id = var.cmk_encryption_enabled ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
     subresource_names              = ["blob"]
   }
+
+  lifecycle {
+    ignore_changes = [
+      tags,
+    ]
+  }
 }
 
-# Create Private DNS Zone
-resource "azurerm_private_dns_zone" "dnszone1" {
-  count               = var.enabled_private_endpoint ? 1 : 0 
-  name                = "privatelink.blob.core.windows.net"
+locals {
   resource_group_name = var.resource_group_name
+  location            = var.location
+  valid_rg_name = var.existing_private_dns_zone == null ? local.resource_group_name : var.existing_private_dns_zone_resource_group_name
+  private_dns_zone_name = var.existing_private_dns_zone == null ? join("", azurerm_private_dns_zone.dnszone.*.name) : var.existing_private_dns_zone
 }
 
-# Create Private DNS Zone Network Link
-resource "azurerm_private_dns_zone_virtual_network_link" "network_link" {
-  count               = var.enabled_private_endpoint ? 1 : 0 
-  name                  = format("%s-pdz-vnet-link-storage", module.labels.id)
-  resource_group_name   = var.resource_group_name
-  private_dns_zone_name = azurerm_private_dns_zone.dnszone1.*.name[0]
+data "azurerm_private_endpoint_connection" "private-ip-0" {
+  count               = var.enabled && var.enable_private_endpoint  && var.cmk_encryption_enabled ? 1 : 0
+  name                = join("", azurerm_private_endpoint.pep.*.name)
+  resource_group_name = local.resource_group_name
+  depends_on          = [azurerm_storage_account.storage]
+}
+
+data "azurerm_private_endpoint_connection" "private-ip-1" {
+  count               = var.enabled && var.enable_private_endpoint  && var.default_enabled ? 1 : 0
+  name                = join("", azurerm_private_endpoint.pep.*.name)
+  resource_group_name = local.resource_group_name
+  depends_on          = [azurerm_storage_account.default_storage]
+}
+
+resource "azurerm_private_dns_zone" "dnszone" {
+  count               = var.enabled && var.existing_private_dns_zone == null && var.enable_private_endpoint ? 1 : 0
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = local.resource_group_name
+  tags                = module.labels.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "vent-link" {
+  count                 = var.enabled && var.enable_private_endpoint ? 1 : 0
+  name                  = var.existing_private_dns_zone == null ? format("%s-pdz-vnet-link-kv", module.labels.id) : format("%s-pdz-vnet-link-kv-1", module.labels.id)
+  resource_group_name   = local.valid_rg_name
+  private_dns_zone_name = local.private_dns_zone_name
   virtual_network_id    = var.virtual_network_id
+  tags                  = module.labels.tags
 }
 
+resource "azurerm_private_dns_zone_virtual_network_link" "addon_vent_link" {
+  count                 = var.enabled && var.addon_vent_link ? 1 : 0
+  name                  = format("%s-pdz-vnet-link-kv-addon", module.labels.id)
+  resource_group_name   = var.addon_resource_group_name
+  private_dns_zone_name = var.existing_private_dns_zone == null ? join("", azurerm_private_dns_zone.dnszone.*.name) : var.existing_private_dns_zone
+  virtual_network_id    = var.addon_virtual_network_id
+  tags                  = module.labels.tags
+}
 
-
-# Create DNS A Record
-# resource "azurerm_private_dns_a_record" "dns_a" {
-#   name                = "kopicloudnortheurope"
-#   zone_name           = azurerm_private_dns_zone.dns-zone.name
-#   resource_group_name = azurerm_resource_group.network-rg.name
-#   ttl                 = 300
-#   records             = [azurerm_private_endpoint.endpoint.private_service_connection.0.private_ip_address]
-# }
+resource "azurerm_private_dns_a_record" "arecord" {
+  count               = var.enabled && var.enable_private_endpoint ? 1 : 0
+  name                = var.cmk_encryption_enabled ? join("", azurerm_storage_account.storage.*.name) : join("", azurerm_storage_account.default_storage.*.name) 
+  zone_name           = local.private_dns_zone_name
+  resource_group_name = local.valid_rg_name
+  ttl                 = 3600
+  records             = var.cmk_encryption_enabled ? [data.azurerm_private_endpoint_connection.private-ip-0.0.private_service_connection.0.private_ip_address] : [data.azurerm_private_endpoint_connection.private-ip-1.0.private_service_connection.0.private_ip_address]
+  tags                = module.labels.tags
+  lifecycle {
+    ignore_changes = [
+      tags,
+    ]
+  }
+}

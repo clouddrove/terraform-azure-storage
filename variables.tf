@@ -27,7 +27,13 @@ variable "label_order" {
 variable "managedby" {
   type        = string
   default     = ""
-  description = "ManagedBy, eg ''."
+  description = "ManagedBy, eg 'Identos'."
+}
+
+variable "enabled" {
+  type        = bool
+  description = "Set to false to prevent the module from creating any resources."
+  default     = true
 }
 
 variable "default_enabled" {
@@ -111,10 +117,6 @@ variable "network_rules" {
   default     = {}
   description = "List of objects that represent the configuration of each network rules."
 }
-variable "network_rule" {
-  default     = {}
-  description = "List of objects that represent the configuration of each network rules."
-}
 
 variable "is_hns_enabled" {
   description = "Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2. Changing this forces a new resource to be created."
@@ -190,7 +192,6 @@ variable "principal_id" {
   default     = []
   description = " The ID of the Principal (User, Group or Service Principal) to assign the Role Definition to. Changing this forces a new resource to be created."
 }
-
 variable "cmk_encryption_enabled" {
   type    = bool
   default = false
@@ -225,25 +226,59 @@ variable "allow_nested_items_to_be_public" {
   default     = true
   description = "Allow or disallow nested items within this Account to opt into being public. Defaults to true."
 }
+
 variable "object_id" {
   type    = list(string)
   default = []
 }
 
-variable "subnet_id" {
-  type        = list(string)
-  default     = null
-  description = "Subnet to be used for private endpoint"
-}
+## Private endpoint
 
 variable "virtual_network_id" {
   type        = string
-  default     = null
-  description = "Virtual Network to be used for private endpoint"
+  default     = ""
+  description = "The name of the virtual network"
 }
 
-variable "enabled_private_endpoint" {
+variable "subnet_id" {
+  type        = string
+  default     = ""
+  description = "The resource ID of the subnet"
+}
+
+variable "enable_private_endpoint" {
   type        = bool
   default     = false
   description = "enable or disable private endpoint to storage account"
+}
+
+variable "existing_private_dns_zone" {
+  type        = string
+  default     = null
+  description = "Name of the existing private DNS zone"
+}
+
+variable "existing_private_dns_zone_resource_group_name" {
+  type        = string
+  default     = ""
+  description = "The name of the existing resource group"
+}
+
+## Addon vritual link
+variable "addon_vent_link" {
+  type        = bool
+  default     = false
+  description = "The name of the addon vnet "
+}
+
+variable "addon_resource_group_name" {
+  type        = string
+  default     = ""
+  description = "The name of the addon vnet resource group"
+}
+
+variable "addon_virtual_network_id" {
+  type        = string
+  default     = ""
+  description = "The name of the addon vnet link vnet id"
 }

@@ -66,4 +66,10 @@ module "storage" {
       snapshot_delete_after_days = 30
     }
   ]
+  
+  #enable private endpoint
+  # enabled_private_endpoint = true
+  # subnet_id = ""
+  # virtual_network_id = ""
+  
 }
