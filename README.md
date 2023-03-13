@@ -202,13 +202,18 @@ Here is an example of how you can use this module in your inventory structure:
 | cmk\_encryption\_enabled | n/a | `bool` | `false` | no |
 | containers\_list | List of containers to create and their access levels. | `list(object({ name = string, access_type = string }))` | `[]` | no |
 | cross\_tenant\_replication\_enabled | Should cross Tenant replication be enabled? Defaults to true. | `bool` | `true` | no |
+| datastorages | n/a | `list(string)` | `null` | no |
+| days | Number of days to create retension policies for te diagnosys setting. | `number` | `365` | no |
 | default\_enabled | Set to false to prevent the module from creating any resources. | `bool` | `false` | no |
 | default\_to\_oauth\_authentication | Default to Azure Active Directory authorization in the Azure portal when accessing the Storage Account. The default value is false | `bool` | `false` | no |
 | enable\_advanced\_threat\_protection | Boolean flag which controls if advanced threat protection is enabled. | `bool` | `false` | no |
+| enable\_diagnostic | Set to false to prevent the module from creating the diagnosys setting for the NSG Resource.. | `bool` | `false` | no |
 | enable\_https\_traffic\_only | Boolean flag which forces HTTPS if enabled, see here for more information. | `bool` | `true` | no |
 | enable\_private\_endpoint | enable or disable private endpoint to storage account | `bool` | `false` | no |
 | enabled | Set to false to prevent the module from creating any resources. | `bool` | `true` | no |
 | environment | Environment (e.g. `prod`, `dev`, `staging`). | `string` | `""` | no |
+| eventhub\_authorization\_rule\_id | Eventhub authorization rule id to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
+| eventhub\_name | Eventhub Name to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
 | existing\_private\_dns\_zone | Name of the existing private DNS zone | `string` | `null` | no |
 | existing\_private\_dns\_zone\_resource\_group\_name | The name of the existing resource group | `string` | `""` | no |
 | file\_shares | List of containers to create and their access levels. | `list(object({ name = string, quota = number }))` | `[]` | no |
@@ -219,8 +224,13 @@ Here is an example of how you can use this module in your inventory structure:
 | key\_vault\_id | n/a | `string` | `null` | no |
 | label\_order | Label order, e.g. sequence of application name and environment `name`,`environment`,'attribute' [`webserver`,`qa`,`devops`,`public`,] . | `list(any)` | `[]` | no |
 | location | The location/region to keep all your network resources. To get the list of all locations with table format from azure cli, run 'az account list-locations -o table' | `string` | `"North Europe"` | no |
+| log\_analytics\_workspace\_id | log analytics workspace id to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
+| logs | n/a | `list(string)` | `null` | no |
+| logs\_enabled | n/a | `list(bool)` | `null` | no |
 | managedby | ManagedBy, eg 'Identos'. | `string` | `""` | no |
 | management\_policy | Configure Azure Storage firewalls and virtual networks | <pre>list(object({<br>    prefix_match               = set(string),<br>    tier_to_cool_after_days    = number,<br>    tier_to_archive_after_days = number,<br>    delete_after_days          = number,<br>    snapshot_delete_after_days = number<br>  }))</pre> | `[]` | no |
+| metrics | n/a | `list(string)` | `null` | no |
+| metrics\_enabled | n/a | `list(bool)` | `null` | no |
 | min\_tls\_version | The minimum supported TLS version for the storage account | `string` | `"TLS1_2"` | no |
 | name | Name  (e.g. `app` or `cluster`). | `string` | `""` | no |
 | network\_rules | List of objects that represent the configuration of each network rules. | `map` | `{}` | no |
@@ -230,9 +240,11 @@ Here is an example of how you can use this module in your inventory structure:
 | queues | List of storages queues | `list(string)` | `[]` | no |
 | repository | Terraform current module repo | `string` | `""` | no |
 | resource\_group\_name | A container that holds related resources for an Azure solution | `string` | `""` | no |
+| retention\_policy\_enabled | Set to false to prevent the module from creating retension policy for the diagnosys setting. | `bool` | `false` | no |
 | sftp\_enabled | Boolean, enable SFTP for the storage account | `bool` | `false` | no |
 | shared\_access\_key\_enabled | Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). The default value is true. | `bool` | `true` | no |
 | soft\_delete\_retention | Number of retention days for soft delete. If set to null it will disable soft delete all together. | `number` | `30` | no |
+| storage\_account\_id | Storage account id to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
 | storage\_account\_name | The name of the azure storage account | `string` | `""` | no |
 | subnet\_id | The resource ID of the subnet | `string` | `""` | no |
 | tables | List of storage tables. | `list(string)` | `[]` | no |
