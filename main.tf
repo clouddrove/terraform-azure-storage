@@ -233,21 +233,21 @@ resource "azurerm_private_endpoint" "pep" {
 }
 
 locals {
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  valid_rg_name = var.existing_private_dns_zone == null ? local.resource_group_name : var.existing_private_dns_zone_resource_group_name
+  resource_group_name   = var.resource_group_name
+  location              = var.location
+  valid_rg_name         = var.existing_private_dns_zone == null ? local.resource_group_name : var.existing_private_dns_zone_resource_group_name
   private_dns_zone_name = var.existing_private_dns_zone == null ? join("", azurerm_private_dns_zone.dnszone.*.name) : var.existing_private_dns_zone
 }
 
 data "azurerm_private_endpoint_connection" "private-ip-0" {
-  count               = var.enabled && var.enable_private_endpoint  && var.cmk_encryption_enabled ? 1 : 0
+  count               = var.enabled && var.enable_private_endpoint && var.cmk_encryption_enabled ? 1 : 0
   name                = join("", azurerm_private_endpoint.pep.*.name)
   resource_group_name = local.resource_group_name
   depends_on          = [azurerm_storage_account.storage]
 }
 
 data "azurerm_private_endpoint_connection" "private-ip-1" {
-  count               = var.enabled && var.enable_private_endpoint  && var.default_enabled ? 1 : 0
+  count               = var.enabled && var.enable_private_endpoint && var.default_enabled ? 1 : 0
   name                = join("", azurerm_private_endpoint.pep.*.name)
   resource_group_name = local.resource_group_name
   depends_on          = [azurerm_storage_account.default_storage]
@@ -280,7 +280,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "addon_vent_link" {
 
 resource "azurerm_private_dns_a_record" "arecord" {
   count               = var.enabled && var.enable_private_endpoint ? 1 : 0
-  name                = var.cmk_encryption_enabled ? join("", azurerm_storage_account.storage.*.name) : join("", azurerm_storage_account.default_storage.*.name) 
+  name                = var.cmk_encryption_enabled ? join("", azurerm_storage_account.storage.*.name) : join("", azurerm_storage_account.default_storage.*.name)
   zone_name           = local.private_dns_zone_name
   resource_group_name = local.valid_rg_name
   ttl                 = 3600
@@ -291,4 +291,55 @@ resource "azurerm_private_dns_a_record" "arecord" {
       tags,
     ]
   }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "storage" {
+  count                          = var.enable_diagnostic ? 1 : 0
+  name                           = format("storage-diagnostic-log")
+  target_resource_id             = var.default_enabled ? azurerm_storage_account.default_storage[0].id : azurerm_storage_account.storage[0].id # "${azurerm_storage_account.default_storage[0].id}/blobServices/default/" : "${azurerm_storage_account.storage[0].id}/blobServices/default/" # "${azurerm_storage_account.core.id}/blobServices/default/"
+  storage_account_id             = var.storage_account_id
+  eventhub_name                  = var.eventhub_name
+  eventhub_authorization_rule_id = var.eventhub_authorization_rule_id
+  log_analytics_workspace_id     = var.log_analytics_workspace_id
+
+  dynamic "metric" {
+    for_each = var.metrics
+    content {
+      category = metric.value
+      enabled  = var.metrics_enabled[count.index]
+      retention_policy {
+        days    = var.days
+        enabled = var.retention_policy_enabled
+      }
+    }
+  }
+
+}
+
+resource "azurerm_monitor_diagnostic_setting" "datastorage" {
+  count                          = length(var.datastorages)
+  name                           = format("%s-diagnostic-log", var.datastorages[count.index])
+  target_resource_id             = var.default_enabled ? "${azurerm_storage_account.default_storage[0].id}/${var.datastorages[count.index]}Services/default" : "${azurerm_storage_account.storage[0].id}/${var.datastorages[count.index]}Services/default" #  "${azurerm_storage_account.core.id}/blobServices/default/"
+  storage_account_id             = var.storage_account_id
+  eventhub_name                  = var.eventhub_name
+  eventhub_authorization_rule_id = var.eventhub_authorization_rule_id
+  log_analytics_workspace_id     = var.log_analytics_workspace_id
+
+  dynamic "log" {
+    for_each = var.logs
+    content {
+      category = log.value
+      enabled  = true
+      retention_policy {
+        days    = var.days
+        enabled = var.retention_policy_enabled
+      }
+    }
+  }
+
+  metric {
+    category = "Transaction"
+    enabled  = true
+  }
+
 }

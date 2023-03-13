@@ -128,4 +128,13 @@ module "storage" {
   #  enabled_private_endpoint = true
   #  subnet_id = ""
   #  virtual_network_id = ""
+
+  enable_diagnostic          = true
+  log_analytics_workspace_id = module.log-analytics.workspace_id
+  metrics                    = ["Transaction", "Capacity"]
+  metrics_enabled            = [true, false]
+
+  datastorages = ["blob", "queue", "table", "file"]
+  logs         = ["StorageWrite", "StorageRead", "StorageDelete"]
+  logs_enabled = [true, true]
 }
