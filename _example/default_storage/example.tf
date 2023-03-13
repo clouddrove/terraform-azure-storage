@@ -8,9 +8,24 @@ module "resource_group" {
   source = "clouddrove/resource-group/azure"
 
   label_order = ["name", "environment", ]
-  name        = "appeee"
+  name        = "appe"
   environment = "test"
   location    = "North Europe"
+}
+
+module "log-analytics" {
+  source                           = "clouddrove/log-analytics/azure"
+  version                          = "1.0.0"
+  name                             = "app"
+  environment                      = "test"
+  label_order                      = ["name", "environment"]
+  create_log_analytics_workspace   = true
+  log_analytics_workspace_sku      = "PerGB2018"
+  daily_quota_gb                   = "-1"
+  internet_ingestion_enabled       = true
+  internet_query_enabled           = true
+  resource_group_name              = module.resource_group.resource_group_name
+  log_analytics_workspace_location = module.resource_group.resource_group_location
 }
 
 
@@ -39,7 +54,7 @@ module "storage" {
 
 
   ##   Storage Account Threat Protection
-  enable_advanced_threat_protection = true
+  enable_advanced_threat_protection = false
 
   ##   Storage Container
   containers_list = [
@@ -66,10 +81,19 @@ module "storage" {
       snapshot_delete_after_days = 30
     }
   ]
-  
+
   #enable private endpoint
   # enabled_private_endpoint = true
   # subnet_id = ""
   # virtual_network_id = ""
-  
+
+  enable_diagnostic          = true
+  log_analytics_workspace_id = module.log-analytics.workspace_id
+  metrics                    = ["Transaction", "Capacity"]
+  metrics_enabled            = [true, true]
+
+  datastorages = ["blob", "queue", "table", "file"]
+  logs         = ["StorageWrite", "StorageRead", "StorageDelete"]
+  logs_enabled = [true, true]
+
 }
