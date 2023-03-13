@@ -90,7 +90,7 @@ module "storage" {
   enable_diagnostic          = true
   log_analytics_workspace_id = module.log-analytics.workspace_id
   metrics                    = ["Transaction", "Capacity"]
-  metrics_enabled            = [true, false]
+  metrics_enabled            = [true, true]
 
   datastorages = ["blob", "queue", "table", "file"]
   logs         = ["StorageWrite", "StorageRead", "StorageDelete"]

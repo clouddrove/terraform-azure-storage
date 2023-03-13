@@ -337,9 +337,16 @@ resource "azurerm_monitor_diagnostic_setting" "datastorage" {
     }
   }
 
-  metric {
-    category = "Transaction"
-    enabled  = true
+  dynamic "metric" {
+    for_each = var.metrics
+    content {
+      category = metric.value
+      enabled  = true
+      retention_policy {
+        days    = var.days
+        enabled = var.retention_policy_enabled
+      }
+    }
   }
 
 }
