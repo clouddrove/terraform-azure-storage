@@ -283,6 +283,18 @@ variable "addon_virtual_network_id" {
   description = "The name of the addon vnet link vnet id"
 }
 
+variable "versioning_enabled" {
+  type        = bool
+  default     = false
+  description = "Is versioning enabled? Default to false."
+}
+
+variable "last_access_time_enabled" {
+  type        = bool
+  default     = false
+  description = "(Optional) Is the last access time based tracking enabled? Default to true."
+}
+
 # Diagnosis Settings Enable
 
 variable "enable_diagnostic" {
@@ -350,4 +362,24 @@ variable "logs_enabled" {
 variable "datastorages" {
   type    = list(string)
   default = null
+}
+
+variable "alias_sub" {
+  type    = string
+  default = null
+}
+
+variable "diff_sub" {
+  type        = bool
+  default     = false
+  description = "The name of the addon vnet "
+}
+
+variable "alias" {
+  type    = string
+  default = null
+}
+variable "management_policy_enable" {
+  type    = bool
+  default = false
 }

@@ -66,7 +66,7 @@ module "vault" {
   enable_private_endpoint = true
   ##RBAC
   enable_rbac_authorization = true
-  principal_id              = ["71d1aXXXXXXXXXXXXXXXXX166d7c97", ]
+  principal_id              = ["71d1a02f-3ae9-4ab9-8fec-d9b1166d7c97", ]
   role_definition_name      = ["Key Vault Administrator", ]
 
 }
@@ -74,7 +74,6 @@ module "vault" {
 
 ##    Storage Account
 module "storage" {
-  depends_on                = [module.resource_group]
   source                    = "../.."
   name                      = "app"
   environment               = "test"
@@ -88,8 +87,9 @@ module "storage" {
   object_id                 = ["71d1XXXXXXXXXXXXXXXXX7c97", "a9379eXXXXXXXXXXXXXXXa0ad6"]
   account_replication_type  = "ZRS"
   enable_https_traffic_only = true
-  is_hns_enabled            = true
-  sftp_enabled              = true
+  is_hns_enabled            = false
+  sftp_enabled              = false
+  versioning_enabled        = true
   #### when CMK encryption enable required key-vault id
   ###customer_managed_key can only be set when the account_kind is set to StorageV2 or account_tier set to Premium, and the identity type is UserAssigned.
   cmk_encryption_enabled = true
@@ -99,7 +99,7 @@ module "storage" {
 
   network_rules = [
     {
-      default_action = "Deny"
+      default_action = "Allow"
       ip_rules       = ["0.0.0.0/0"]
       bypass         = ["AzureServices"]
     }
@@ -114,6 +114,7 @@ module "storage" {
     { name = "app-test", access_type = "private" },
   ]
 
+  management_policy_enable = false
   management_policy = [
     {
       prefix_match               = ["app-test/folder_path"]
@@ -124,13 +125,12 @@ module "storage" {
     }
   ]
 
-  #enable private endpoint
-  #  enabled_private_endpoint = true
-  #  subnet_id = ""
-  #  virtual_network_id = ""
+  enable_private_endpoint = true
+  subnet_id               = module.vnet.vnet_subnets[0]
+  virtual_network_id      = module.vnet.vnet_id[0]
 
-  enable_diagnostic          = true
-  log_analytics_workspace_id = module.log-analytics.workspace_id
+  enable_diagnostic          = false
+  log_analytics_workspace_id = ""
   metrics                    = ["Transaction", "Capacity"]
   metrics_enabled            = [true, false]
 
