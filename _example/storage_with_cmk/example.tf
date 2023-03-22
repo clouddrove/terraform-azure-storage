@@ -66,7 +66,7 @@ module "vault" {
   enable_private_endpoint = true
   ##RBAC
   enable_rbac_authorization = true
-  principal_id              = ["71d1a02f-3ae9-4ab9-8fec-d9b1166d7c97", ]
+  principal_id              = ["71d1aXXXXXXXXXXXXXXXXX166d7c97", ]
   role_definition_name      = ["Key Vault Administrator", ]
 
 }
