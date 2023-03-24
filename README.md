@@ -198,6 +198,8 @@ Here is an example of how you can use this module in your inventory structure:
 | addon\_resource\_group\_name | The name of the addon vnet resource group | `string` | `""` | no |
 | addon\_vent\_link | The name of the addon vnet | `bool` | `false` | no |
 | addon\_virtual\_network\_id | The name of the addon vnet link vnet id | `string` | `""` | no |
+| alias | n/a | `string` | `null` | no |
+| alias\_sub | n/a | `string` | `null` | no |
 | allow\_nested\_items\_to\_be\_public | Allow or disallow nested items within this Account to opt into being public. Defaults to true. | `bool` | `true` | no |
 | cmk\_encryption\_enabled | n/a | `bool` | `false` | no |
 | containers\_list | List of containers to create and their access levels. | `list(object({ name = string, access_type = string }))` | `[]` | no |
@@ -206,6 +208,7 @@ Here is an example of how you can use this module in your inventory structure:
 | days | Number of days to create retension policies for te diagnosys setting. | `number` | `365` | no |
 | default\_enabled | Set to false to prevent the module from creating any resources. | `bool` | `false` | no |
 | default\_to\_oauth\_authentication | Default to Azure Active Directory authorization in the Azure portal when accessing the Storage Account. The default value is false | `bool` | `false` | no |
+| diff\_sub | The name of the addon vnet | `bool` | `false` | no |
 | enable\_advanced\_threat\_protection | Boolean flag which controls if advanced threat protection is enabled. | `bool` | `false` | no |
 | enable\_diagnostic | Set to false to prevent the module from creating the diagnosys setting for the NSG Resource.. | `bool` | `false` | no |
 | enable\_https\_traffic\_only | Boolean flag which forces HTTPS if enabled, see here for more information. | `bool` | `true` | no |
@@ -223,12 +226,14 @@ Here is an example of how you can use this module in your inventory structure:
 | is\_hns\_enabled | Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2. Changing this forces a new resource to be created. | `bool` | `false` | no |
 | key\_vault\_id | n/a | `string` | `null` | no |
 | label\_order | Label order, e.g. sequence of application name and environment `name`,`environment`,'attribute' [`webserver`,`qa`,`devops`,`public`,] . | `list(any)` | `[]` | no |
+| last\_access\_time\_enabled | (Optional) Is the last access time based tracking enabled? Default to true. | `bool` | `false` | no |
 | location | The location/region to keep all your network resources. To get the list of all locations with table format from azure cli, run 'az account list-locations -o table' | `string` | `"North Europe"` | no |
 | log\_analytics\_workspace\_id | log analytics workspace id to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
 | logs | n/a | `list(string)` | `null` | no |
 | logs\_enabled | n/a | `list(bool)` | `null` | no |
 | managedby | ManagedBy, eg 'Identos'. | `string` | `""` | no |
 | management\_policy | Configure Azure Storage firewalls and virtual networks | <pre>list(object({<br>    prefix_match               = set(string),<br>    tier_to_cool_after_days    = number,<br>    tier_to_archive_after_days = number,<br>    delete_after_days          = number,<br>    snapshot_delete_after_days = number<br>  }))</pre> | `[]` | no |
+| management\_policy\_enable | n/a | `bool` | `false` | no |
 | metrics | n/a | `list(string)` | `null` | no |
 | metrics\_enabled | n/a | `list(bool)` | `null` | no |
 | min\_tls\_version | The minimum supported TLS version for the storage account | `string` | `"TLS1_2"` | no |
@@ -250,6 +255,7 @@ Here is an example of how you can use this module in your inventory structure:
 | tables | List of storage tables. | `list(string)` | `[]` | no |
 | tags | A map of tags to add to all resources | `map(string)` | `{}` | no |
 | user\_assigned\_identity\_id | The ID of a user assigned identity. | `string` | `null` | no |
+| versioning\_enabled | Is versioning enabled? Default to false. | `bool` | `false` | no |
 | virtual\_network\_id | The name of the virtual network | `string` | `""` | no |
 
 ## Outputs
