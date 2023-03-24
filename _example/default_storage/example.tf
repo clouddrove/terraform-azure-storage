@@ -31,7 +31,6 @@ module "log-analytics" {
 
 ##    Storage Account
 module "storage" {
-  depends_on                = [module.resource_group]
   source                    = "../.."
   default_enabled           = true
   resource_group_name       = module.resource_group.resource_group_name
@@ -41,8 +40,9 @@ module "storage" {
   account_tier              = "Standard"
   account_replication_type  = "GRS"
   enable_https_traffic_only = true
-  is_hns_enabled            = true
-  sftp_enabled              = true
+  is_hns_enabled            = false
+  sftp_enabled              = false
+  versioning_enabled        = true
 
   network_rules = [
     {
@@ -59,6 +59,7 @@ module "storage" {
   ##   Storage Container
   containers_list = [
     { name = "app-test", access_type = "private" },
+    { name = "app2", access_type = "private" },
   ]
 
   ##   Storage File Share
@@ -72,6 +73,7 @@ module "storage" {
   ## Storage Queues
   queues = ["queue1"]
 
+  management_policy_enable = true
   management_policy = [
     {
       prefix_match               = ["app-test/folder_path"]
