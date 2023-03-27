@@ -27,6 +27,11 @@ output "default_storage_account_primary_web_endpoint" {
   description = "The endpoint URL for web storage in the primary location."
 }
 
+output "default_storage_account_primary_blob_endpoint" {
+  value       = join("", azurerm_storage_account.default_storage.*.primary_blob_endpoint)
+  description = "The endpoint URL for blob storage in the primary location."
+}
+
 output "default_storage_account_primary_web_host" {
   value       = join("", azurerm_storage_account.default_storage.*.primary_web_host)
   description = "The hostname with port if applicable for web storage in the primary location."
