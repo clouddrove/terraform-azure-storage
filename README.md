@@ -267,6 +267,7 @@ Here is an example of how you can use this module in your inventory structure:
 | containers | Map of containers. |
 | default\_storage\_account\_id | The ID of the storage account. |
 | default\_storage\_account\_name | The name of the storage account. |
+| default\_storage\_account\_primary\_blob\_endpoint | The endpoint URL for blob storage in the primary location. |
 | default\_storage\_account\_primary\_location | The primary location of the storage account |
 | default\_storage\_account\_primary\_web\_endpoint | The endpoint URL for web storage in the primary location. |
 | default\_storage\_account\_primary\_web\_host | The hostname with port if applicable for web storage in the primary location. |
