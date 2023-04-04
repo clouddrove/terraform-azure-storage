@@ -14,7 +14,7 @@ variable "environment" {
 
 variable "repository" {
   type        = string
-  default     = ""
+  default     = "https://github.com/clouddrove/terraform-azure-storage.git"
   description = "Terraform current module repo"
 }
 
@@ -36,11 +36,6 @@ variable "enabled" {
   default     = true
 }
 
-variable "default_enabled" {
-  type        = bool
-  description = "Set to false to prevent the module from creating any resources."
-  default     = false
-}
 
 variable "tags" {
   description = "A map of tags to add to all resources"
@@ -79,7 +74,7 @@ variable "access_tier" {
 
 variable "account_replication_type" {
   type        = string
-  default     = ""
+  default     = "GRS"
   description = "Defines the type of replication to use for this storage account. Valid options are LRS, GRS, RAGRS, ZRS, GZRS and RAGZRS. Changing this forces a new resource to be created when types LRS, GRS and RAGRS are changed to ZRS, GZRS or RAGZRS and vice versa."
 }
 
@@ -114,9 +109,22 @@ variable "containers_list" {
 }
 
 variable "network_rules" {
-  default     = {}
+  type = list(object({ default_action = string, ip_rules = list(string), bypass = list(string) }))
+  default = [{
+    default_action = "Deny"
+    ip_rules       = ["0.0.0.0/0"]
+    bypass         = ["AzureServices"]
+  }]
   description = "List of objects that represent the configuration of each network rules."
 }
+
+#network_rules = [
+#  {
+#    default_action = "Deny"
+#    ip_rules       = ["0.0.0.0/0"]
+#    bypass         = ["AzureServices"]
+#  }
+#]
 
 variable "is_hns_enabled" {
   description = "Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2. Changing this forces a new resource to be created."
@@ -132,7 +140,7 @@ variable "sftp_enabled" {
 
 variable "enable_advanced_threat_protection" {
   description = "Boolean flag which controls if advanced threat protection is enabled."
-  default     = false
+  default     = true
   type        = bool
 }
 
@@ -163,7 +171,13 @@ variable "management_policy" {
     delete_after_days          = number,
     snapshot_delete_after_days = number
   }))
-  default = []
+  default = [{
+    prefix_match               = null
+    tier_to_cool_after_days    = 0,
+    tier_to_archive_after_days = 50,
+    delete_after_days          = 100,
+    snapshot_delete_after_days = 30
+  }]
 }
 
 variable "user_assigned_identity_id" {
@@ -192,10 +206,7 @@ variable "principal_id" {
   default     = []
   description = " The ID of the Principal (User, Group or Service Principal) to assign the Role Definition to. Changing this forces a new resource to be created."
 }
-variable "cmk_encryption_enabled" {
-  type    = bool
-  default = false
-}
+
 variable "shared_access_key_enabled" {
   type        = bool
   default     = true
@@ -203,7 +214,7 @@ variable "shared_access_key_enabled" {
 }
 variable "infrastructure_encryption_enabled" {
   type        = bool
-  default     = false
+  default     = true
   description = " Is infrastructure encryption enabled? Changing this forces a new resource to be created. Defaults to false."
 }
 variable "public_network_access_enabled" {
@@ -248,7 +259,7 @@ variable "subnet_id" {
 
 variable "enable_private_endpoint" {
   type        = bool
-  default     = false
+  default     = true
   description = "enable or disable private endpoint to storage account"
 }
 
@@ -285,7 +296,7 @@ variable "addon_virtual_network_id" {
 
 variable "versioning_enabled" {
   type        = bool
-  default     = false
+  default     = true
   description = "Is versioning enabled? Default to false."
 }
 
@@ -299,7 +310,7 @@ variable "last_access_time_enabled" {
 
 variable "enable_diagnostic" {
   type        = bool
-  default     = false
+  default     = true
   description = "Set to false to prevent the module from creating the diagnosys setting for the NSG Resource.."
 }
 
@@ -341,27 +352,27 @@ variable "days" {
 
 variable "metrics" {
   type    = list(string)
-  default = null
+  default = ["Transaction", "Capacity"]
 }
 
 variable "metrics_enabled" {
   type    = list(bool)
-  default = null
+  default = [true, true]
 }
 
 variable "logs" {
   type    = list(string)
-  default = null
+  default = ["StorageWrite", "StorageRead", "StorageDelete"]
 }
 
 variable "logs_enabled" {
   type    = list(bool)
-  default = null
+  default = [true, true]
 }
 
 variable "datastorages" {
   type    = list(string)
-  default = null
+  default = ["blob", "queue", "table", "file"]
 }
 
 variable "alias_sub" {
@@ -382,4 +393,20 @@ variable "alias" {
 variable "management_policy_enable" {
   type    = bool
   default = false
+}
+
+variable "log_analytics_destination_type" {
+  type        = string
+  default     = "AzureDiagnostics"
+  description = "Possible values are AzureDiagnostics and Dedicated, default to AzureDiagnostics. When set to Dedicated, logs sent to a Log Analytics workspace will go into resource specific tables, instead of the legacy AzureDiagnostics table."
+}
+variable "Metric_enable" {
+  type        = bool
+  default     = true
+  description = "Is this Diagnostic Metric enabled? Defaults to true."
+}
+variable "diagnostic_log_days" {
+  type        = number
+  default     = "90"
+  description = " The number of days for which this Retention Policy should apply."
 }
