@@ -245,7 +245,7 @@ resource "azurerm_private_endpoint" "pep" {
 locals {
   resource_group_name   = var.resource_group_name
   location              = var.location
-  valid_rg_name         = var.existing_private_dns_zone == null ? local.resource_group_name : var.existing_private_dns_zone_resource_group_name
+  valid_rg_name         = var.existing_private_dns_zone == null ? local.resource_group_name : (var.existing_private_dns_zone_resource_group_name == "" ? local.resource_group_name : var.existing_private_dns_zone_resource_group_name)
   private_dns_zone_name = var.existing_private_dns_zone == null ? join("", azurerm_private_dns_zone.dnszone.*.name) : var.existing_private_dns_zone
 }
 
@@ -271,7 +271,7 @@ resource "azurerm_private_dns_zone" "dnszone" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vent-link" {
-  count                 = var.enabled && var.enable_private_endpoint && var.diff_sub == false ? 1 : 0
+  count                 = var.enabled && var.enable_private_endpoint && (var.existing_private_dns_zone != null ? (var.existing_private_dns_zone_resource_group_name == "" ? false : true) : true) && var.diff_sub == false ? 1 : 0
   name                  = var.existing_private_dns_zone == null ? format("%s-pdz-vnet-link-storage", module.labels.id) : format("%s-pdz-vnet-link-storage-1", module.labels.id)
   resource_group_name   = local.valid_rg_name
   private_dns_zone_name = local.private_dns_zone_name
