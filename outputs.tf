@@ -69,3 +69,7 @@ output "queues" {
   description = "Map of Storage SMB file shares."
   value       = { for q in azurerm_storage_queue.queues : q.name => q.id }
 }
+
+#output "pe_nic" {
+#  value = join("", azurerm_private_endpoint.pep.*.id)
+#}

@@ -14,7 +14,7 @@ variable "environment" {
 
 variable "repository" {
   type        = string
-  default     = ""
+  default     = "https://github.com/clouddrove/terraform-azure-storage.git"
   description = "Terraform current module repo"
 }
 
@@ -79,7 +79,7 @@ variable "access_tier" {
 
 variable "account_replication_type" {
   type        = string
-  default     = ""
+  default     = "GRS"
   description = "Defines the type of replication to use for this storage account. Valid options are LRS, GRS, RAGRS, ZRS, GZRS and RAGZRS. Changing this forces a new resource to be created when types LRS, GRS and RAGRS are changed to ZRS, GZRS or RAGZRS and vice versa."
 }
 
@@ -118,6 +118,27 @@ variable "network_rules" {
   description = "List of objects that represent the configuration of each network rules."
 }
 
+variable "queue_properties_logging" {
+  description = "Logging queue properties"
+  type = object({
+    delete                = optional(bool, false)
+    read                  = optional(bool, false)
+    write                 = optional(bool, false)
+    version               = optional(string, "1.0")
+    retention_policy_days = optional(number, 10)
+  })
+  default = {}
+}
+variable "static_website_config" {
+  description = "Static website configuration. Can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`."
+  type = object({
+    index_document     = optional(string)
+    error_404_document = optional(string)
+  })
+  default = null
+}
+
+
 variable "is_hns_enabled" {
   description = "Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2. Changing this forces a new resource to be created."
   type        = bool
@@ -132,7 +153,7 @@ variable "sftp_enabled" {
 
 variable "enable_advanced_threat_protection" {
   description = "Boolean flag which controls if advanced threat protection is enabled."
-  default     = false
+  default     = true
   type        = bool
 }
 
@@ -203,7 +224,7 @@ variable "shared_access_key_enabled" {
 }
 variable "infrastructure_encryption_enabled" {
   type        = bool
-  default     = false
+  default     = true
   description = " Is infrastructure encryption enabled? Changing this forces a new resource to be created. Defaults to false."
 }
 variable "public_network_access_enabled" {
@@ -226,7 +247,27 @@ variable "allow_nested_items_to_be_public" {
   default     = true
   description = "Allow or disallow nested items within this Account to opt into being public. Defaults to true."
 }
+variable "edge_zone" {
+  type        = string
+  default     = null
+  description = "Specifies the Edge Zone within the Azure Region where this Storage Account should exist. Changing this forces a new Storage Account to be created."
+}
 
+variable "nfsv3_enabled" {
+  type        = bool
+  default     = false
+  description = " Is NFSv3 protocol enabled? Changing this forces a new resource to be created. Defaults to false."
+}
+variable "custom_domain_name" {
+  description = "The Custom Domain Name to use for the Storage Account, which will be validated by Azure."
+  type        = string
+  default     = null
+}
+variable "use_subdomain" {
+  description = "Should the Custom Domain Name be validated by using indirect CNAME validation?"
+  type        = bool
+  default     = false
+}
 variable "object_id" {
   type    = list(string)
   default = []
@@ -248,7 +289,7 @@ variable "subnet_id" {
 
 variable "enable_private_endpoint" {
   type        = bool
-  default     = false
+  default     = true
   description = "enable or disable private endpoint to storage account"
 }
 
@@ -285,7 +326,7 @@ variable "addon_virtual_network_id" {
 
 variable "versioning_enabled" {
   type        = bool
-  default     = false
+  default     = true
   description = "Is versioning enabled? Default to false."
 }
 
@@ -382,4 +423,19 @@ variable "alias" {
 variable "management_policy_enable" {
   type    = bool
   default = false
+}
+variable "log_analytics_destination_type" {
+  type        = string
+  default     = "AzureDiagnostics"
+  description = "Possible values are AzureDiagnostics and Dedicated, default to AzureDiagnostics. When set to Dedicated, logs sent to a Log Analytics workspace will go into resource specific tables, instead of the legacy AzureDiagnostics table."
+}
+variable "Metric_enable" {
+  type        = bool
+  default     = true
+  description = "Is this Diagnostic Metric enabled? Defaults to true."
+}
+variable "diagnostic_log_days" {
+  type        = number
+  default     = "90"
+  description = " The number of days for which this Retention Policy should apply."
 }

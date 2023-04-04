@@ -1,5 +1,6 @@
 
 data "azurerm_client_config" "current" {}
+data "azurerm_subscription" "current" {}
 
 module "labels" {
   source      = "clouddrove/labels/azure"
@@ -10,6 +11,7 @@ module "labels" {
   label_order = var.label_order
   repository  = var.repository
 }
+
 
 resource "azurerm_storage_account" "storage" {
   count                             = var.enabled && var.cmk_encryption_enabled ? 1 : 0
@@ -31,7 +33,35 @@ resource "azurerm_storage_account" "storage" {
   default_to_oauth_authentication   = var.default_to_oauth_authentication
   cross_tenant_replication_enabled  = var.cross_tenant_replication_enabled
   allow_nested_items_to_be_public   = var.allow_nested_items_to_be_public
+  edge_zone                         = var.edge_zone
   tags                              = module.labels.tags
+  dynamic "custom_domain" {
+    for_each = var.custom_domain_name != null ? ["enabled"] : []
+    content {
+      name          = var.custom_domain_name
+      use_subdomain = var.use_subdomain
+    }
+  }
+  dynamic "queue_properties" {
+    for_each = var.queue_properties_logging != null && contains(["Storage", "StorageV2"], var.account_kind) ? ["enabled"] : []
+    content {
+      logging {
+        delete                = var.queue_properties_logging.delete
+        read                  = var.queue_properties_logging.read
+        write                 = var.queue_properties_logging.write
+        version               = var.queue_properties_logging.version
+        retention_policy_days = var.queue_properties_logging.retention_policy_days
+      }
+    }
+  }
+  dynamic "static_website" {
+    for_each = var.static_website_config == null ? [] : ["enabled"]
+    content {
+      index_document     = var.static_website_config.index_document
+      error_404_document = var.static_website_config.error_404_document
+    }
+  }
+
   blob_properties {
     delete_retention_policy {
       days = var.soft_delete_retention
@@ -73,7 +103,34 @@ resource "azurerm_storage_account" "default_storage" {
   default_to_oauth_authentication   = var.default_to_oauth_authentication
   cross_tenant_replication_enabled  = var.cross_tenant_replication_enabled
   allow_nested_items_to_be_public   = var.allow_nested_items_to_be_public
+  edge_zone                         = var.edge_zone
   tags                              = module.labels.tags
+  dynamic "custom_domain" {
+    for_each = var.custom_domain_name != null ? ["enabled"] : []
+    content {
+      name          = var.custom_domain_name
+      use_subdomain = var.use_subdomain
+    }
+  }
+  dynamic "queue_properties" {
+    for_each = var.queue_properties_logging != null && contains(["Storage", "StorageV2"], var.account_kind) ? ["enabled"] : []
+    content {
+      logging {
+        delete                = var.queue_properties_logging.delete
+        read                  = var.queue_properties_logging.read
+        write                 = var.queue_properties_logging.write
+        version               = var.queue_properties_logging.version
+        retention_policy_days = var.queue_properties_logging.retention_policy_days
+      }
+    }
+  }
+  dynamic "static_website" {
+    for_each = var.static_website_config == null ? [] : ["enabled"]
+    content {
+      index_document     = var.static_website_config.index_document
+      error_404_document = var.static_website_config.error_404_document
+    }
+  }
   blob_properties {
     delete_retention_policy {
       days = var.soft_delete_retention
@@ -385,3 +442,27 @@ resource "azurerm_monitor_diagnostic_setting" "datastorage" {
   }
 
 }
+
+resource "azurerm_monitor_diagnostic_setting" "storage-nic" {
+  depends_on                     = [azurerm_private_endpoint.pep]
+  count                          = var.enabled && var.enable_diagnostic && var.enable_private_endpoint ? 1 : 0
+  name                           = format("%s-storage-nic-diagnostic-log", module.labels.id)
+  target_resource_id             = element(azurerm_private_endpoint.pep[count.index].network_interface.*.id, count.index)
+  storage_account_id             = var.storage_account_id
+  eventhub_name                  = var.eventhub_name
+  eventhub_authorization_rule_id = var.eventhub_authorization_rule_id
+  log_analytics_workspace_id     = var.log_analytics_workspace_id
+  log_analytics_destination_type = var.log_analytics_destination_type
+  metric {
+    category = "AllMetrics"
+    enabled  = var.Metric_enable
+    retention_policy {
+      enabled = var.retention_policy_enabled
+      days    = var.diagnostic_log_days
+    }
+  }
+  lifecycle {
+    ignore_changes = [log_analytics_destination_type]
+  }
+}
+
