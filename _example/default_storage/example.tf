@@ -66,6 +66,7 @@ module "storage" {
   name                 = "app"
   environment          = "test"
   label_order          = ["name", "environment"]
+  default_enabled      = true
   resource_group_name  = module.resource_group.resource_group_name
   location             = module.resource_group.resource_group_location
   storage_account_name = "stordtyre236"

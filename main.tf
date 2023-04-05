@@ -12,7 +12,7 @@ module "labels" {
 }
 
 resource "azurerm_storage_account" "storage" {
-  count                             = var.enabled && var.key_vault_id != null ? 1 : 0
+  count                             = var.enabled && var.default_enabled == false ? 1 : 0
   depends_on                        = [azurerm_role_assignment.identity_assigned]
   name                              = var.storage_account_name
   resource_group_name               = var.resource_group_name
@@ -56,7 +56,7 @@ resource "azurerm_storage_account" "storage" {
 }
 
 resource "azurerm_storage_account" "default_storage" {
-  count                             = var.enabled && var.key_vault_id == null ? 1 : 0
+  count                             = var.enabled && var.default_enabled == true ? 1 : 0
   name                              = var.storage_account_name
   resource_group_name               = var.resource_group_name
   location                          = var.location
@@ -89,7 +89,7 @@ resource "azurerm_storage_account" "default_storage" {
   }
 }
 resource "azurerm_user_assigned_identity" "identity" {
-  count               = var.key_vault_id != null ? 1 : 0
+  count               = var.enabled && var.default_enabled == false ? 1 : 0
   location            = var.location
   name                = format("midd-storage-%s", module.labels.id)
   resource_group_name = var.resource_group_name
@@ -97,14 +97,14 @@ resource "azurerm_user_assigned_identity" "identity" {
 
 resource "azurerm_role_assignment" "identity_assigned" {
   depends_on           = [azurerm_user_assigned_identity.identity]
-  count                = var.key_vault_id != null ? 1 : 0
+  count                = var.enabled && var.default_enabled == false ? 1 : 0
   principal_id         = join("", azurerm_user_assigned_identity.identity.*.principal_id)
   scope                = var.key_vault_id
   role_definition_name = "Key Vault Crypto Service Encryption User"
 }
 
 resource "azurerm_key_vault_key" "kvkey" {
-  count        = var.key_vault_id != null ? 1 : 0
+  count        = var.enabled && var.default_enabled == false ? 1 : 0
   name         = format("cmk-%s", module.labels.id)
   key_vault_id = var.key_vault_id
   key_type     = "RSA"
@@ -122,7 +122,7 @@ resource "azurerm_key_vault_key" "kvkey" {
 # Network Rules
 resource "azurerm_storage_account_network_rules" "network-rules" {
   for_each                   = { for rule in var.network_rules : rule.default_action => rule }
-  storage_account_id         = var.key_vault_id != null ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
+  storage_account_id         = var.default_enabled == false ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
   default_action             = lookup(each.value, "default_action", "Deny")
   ip_rules                   = lookup(each.value, "ip_rules", null)
   virtual_network_subnet_ids = lookup(each.value, "virtual_network_subnet_ids", null)
@@ -131,12 +131,13 @@ resource "azurerm_storage_account_network_rules" "network-rules" {
 
 ## Storage Account Threat Protection
 resource "azurerm_advanced_threat_protection" "atp" {
-  target_resource_id = var.key_vault_id != null ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
+  count              = var.enabled ? 1 : 0
+  target_resource_id = var.default_enabled == false ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
   enabled            = var.enable_advanced_threat_protection
 }
 
 resource "azurerm_key_vault_access_policy" "example" {
-  count        = var.key_vault_id != null ? length(var.object_id) : 0
+  count        = var.enabled && var.default_enabled == false ? length(var.object_id) : 0
   key_vault_id = var.key_vault_id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = element(var.object_id, count.index)
@@ -193,8 +194,8 @@ resource "azurerm_storage_queue" "queues" {
 
 ## Management Policies
 resource "azurerm_storage_management_policy" "lifecycle_management" {
-  count              = var.management_policy_enable ? length(var.management_policy) : 0
-  storage_account_id = var.key_vault_id != null ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
+  count              = var.enabled && var.management_policy_enable ? length(var.management_policy) : 0
+  storage_account_id = var.default_enabled == false ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
 
   dynamic "rule" {
     for_each = var.management_policy
@@ -227,7 +228,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_private_endpoint" "pep" {
-  count               = var.enable_private_endpoint ? 1 : 0
+  count               = var.enabled && var.enable_private_endpoint ? 1 : 0
   name                = format("%s-pe-storage", module.labels.id)
   location            = local.location
   resource_group_name = local.resource_group_name
@@ -236,7 +237,7 @@ resource "azurerm_private_endpoint" "pep" {
   private_service_connection {
     name                           = format("%s-psc-storage", module.labels.id)
     is_manual_connection           = false
-    private_connection_resource_id = var.key_vault_id != null ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
+    private_connection_resource_id = var.default_enabled == false ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
     subresource_names              = ["blob"]
   }
 
@@ -250,19 +251,19 @@ resource "azurerm_private_endpoint" "pep" {
 locals {
   resource_group_name   = var.resource_group_name
   location              = var.location
-  valid_rg_name         = var.existing_private_dns_zone == null ? local.resource_group_name : var.existing_private_dns_zone_resource_group_name
+  valid_rg_name         = var.existing_private_dns_zone == null ? local.resource_group_name : (var.existing_private_dns_zone_resource_group_name == "" ? local.resource_group_name : var.existing_private_dns_zone_resource_group_name)
   private_dns_zone_name = var.existing_private_dns_zone == null ? join("", azurerm_private_dns_zone.dnszone.*.name) : var.existing_private_dns_zone
 }
 
 data "azurerm_private_endpoint_connection" "private-ip-0" {
-  count               = var.enabled && var.enable_private_endpoint && var.key_vault_id != null ? 1 : 0
+  count               = var.enabled && var.enable_private_endpoint && var.default_enabled == false ? 1 : 0
   name                = join("", azurerm_private_endpoint.pep.*.name)
   resource_group_name = local.resource_group_name
   depends_on          = [azurerm_storage_account.storage]
 }
 
 data "azurerm_private_endpoint_connection" "private-ip-1" {
-  count               = var.enabled && var.enable_private_endpoint && var.key_vault_id == null ? 1 : 0
+  count               = var.enabled && var.enable_private_endpoint && var.default_enabled == true ? 1 : 0
   name                = join("", azurerm_private_endpoint.pep.*.name)
   resource_group_name = local.resource_group_name
   depends_on          = [azurerm_storage_account.default_storage]
@@ -276,7 +277,7 @@ resource "azurerm_private_dns_zone" "dnszone" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vent-link" {
-  count                 = var.enabled && var.enable_private_endpoint && var.diff_sub == false ? 1 : 0
+  count                 = var.enabled && var.enable_private_endpoint && (var.existing_private_dns_zone != null ? (var.existing_private_dns_zone_resource_group_name == "" ? false : true) : true) && var.diff_sub == false ? 1 : 0
   name                  = var.existing_private_dns_zone == null ? format("%s-pdz-vnet-link-storage", module.labels.id) : format("%s-pdz-vnet-link-storage-1", module.labels.id)
   resource_group_name   = local.valid_rg_name
   private_dns_zone_name = local.private_dns_zone_name
@@ -309,7 +310,7 @@ resource "azurerm_private_dns_a_record" "arecord" {
   zone_name           = local.private_dns_zone_name
   resource_group_name = local.valid_rg_name
   ttl                 = 3600
-  records             = var.key_vault_id != null ? [data.azurerm_private_endpoint_connection.private-ip-0.0.private_service_connection.0.private_ip_address] : [data.azurerm_private_endpoint_connection.private-ip-1.0.private_service_connection.0.private_ip_address]
+  records             = var.default_enabled == false ? [data.azurerm_private_endpoint_connection.private-ip-0.0.private_service_connection.0.private_ip_address] : [data.azurerm_private_endpoint_connection.private-ip-1.0.private_service_connection.0.private_ip_address]
   tags                = module.labels.tags
   lifecycle {
     ignore_changes = [
@@ -324,7 +325,7 @@ resource "azurerm_private_dns_a_record" "arecord1" {
   zone_name           = local.private_dns_zone_name
   resource_group_name = local.valid_rg_name
   ttl                 = 3600
-  records             = var.key_vault_id != null ? [data.azurerm_private_endpoint_connection.private-ip-0.0.private_service_connection.0.private_ip_address] : [data.azurerm_private_endpoint_connection.private-ip-1.0.private_service_connection.0.private_ip_address]
+  records             = var.default_enabled == false ? [data.azurerm_private_endpoint_connection.private-ip-0.0.private_service_connection.0.private_ip_address] : [data.azurerm_private_endpoint_connection.private-ip-1.0.private_service_connection.0.private_ip_address]
   tags                = module.labels.tags
   lifecycle {
     ignore_changes = [
@@ -334,9 +335,9 @@ resource "azurerm_private_dns_a_record" "arecord1" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "storage" {
-  count                          = var.enable_diagnostic ? 1 : 0
+  count                          = var.enabled && var.enable_diagnostic ? 1 : 0
   name                           = format("storage-diagnostic-log")
-  target_resource_id             = var.key_vault_id == null ? azurerm_storage_account.default_storage[0].id : azurerm_storage_account.storage[0].id # "${azurerm_storage_account.default_storage[0].id}/blobServices/default/" : "${azurerm_storage_account.storage[0].id}/blobServices/default/" # "${azurerm_storage_account.core.id}/blobServices/default/"
+  target_resource_id             = var.default_enabled == true ? azurerm_storage_account.default_storage[0].id : azurerm_storage_account.storage[0].id # "${azurerm_storage_account.default_storage[0].id}/blobServices/default/" : "${azurerm_storage_account.storage[0].id}/blobServices/default/" # "${azurerm_storage_account.core.id}/blobServices/default/"
   storage_account_id             = var.storage_account_id
   eventhub_name                  = var.eventhub_name
   eventhub_authorization_rule_id = var.eventhub_authorization_rule_id
@@ -357,9 +358,9 @@ resource "azurerm_monitor_diagnostic_setting" "storage" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "datastorage" {
-  count                          = var.enable_diagnostic ? length(var.datastorages) : 0
+  count                          = var.enabled && var.enable_diagnostic ? length(var.datastorages) : 0
   name                           = format("%s-diagnostic-log", var.datastorages[count.index])
-  target_resource_id             = var.key_vault_id == null ? "${azurerm_storage_account.default_storage[0].id}/${var.datastorages[count.index]}Services/default" : "${azurerm_storage_account.storage[0].id}/${var.datastorages[count.index]}Services/default" #  "${azurerm_storage_account.core.id}/blobServices/default/"
+  target_resource_id             = var.default_enabled == true ? "${azurerm_storage_account.default_storage[0].id}/${var.datastorages[count.index]}Services/default" : "${azurerm_storage_account.storage[0].id}/${var.datastorages[count.index]}Services/default" #  "${azurerm_storage_account.core.id}/blobServices/default/"
   storage_account_id             = var.storage_account_id
   eventhub_name                  = var.eventhub_name
   eventhub_authorization_rule_id = var.eventhub_authorization_rule_id

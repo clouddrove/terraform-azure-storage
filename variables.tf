@@ -410,3 +410,8 @@ variable "diagnostic_log_days" {
   default     = "90"
   description = " The number of days for which this Retention Policy should apply."
 }
+
+variable "default_enabled" {
+  type    = bool
+  default = false
+}

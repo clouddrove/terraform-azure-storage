@@ -100,7 +100,7 @@ module "storage" {
   account_kind             = "BlockBlobStorage"
   account_tier             = "Premium"
   identity_type            = "UserAssigned"
-  object_id                = ["71d1a02f-3ae9-4ab9-8fec-d9b1166d7c97", ]
+  object_id                = ["71dXXXXXXXXXXXXXXXXXXXX11c97", ]
   account_replication_type = "ZRS"
 
   ###customer_managed_key can only be set when the account_kind is set to StorageV2 or account_tier set to Premium, and the identity type is UserAssigned.
