@@ -415,3 +415,9 @@ variable "default_enabled" {
   type    = bool
   default = false
 }
+
+variable "multi_sub_vnet_link" {
+  type        = bool
+  default     = false
+  description = "Flag to control creation of vnet link for dns zone in different subscription"
+}

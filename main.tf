@@ -121,7 +121,7 @@ resource "azurerm_key_vault_key" "kvkey" {
 
 # Network Rules
 resource "azurerm_storage_account_network_rules" "network-rules" {
-  for_each                   = { for rule in var.network_rules : rule.default_action => rule }
+  for_each                   = var.enabled ? { for rule in var.network_rules : rule.default_action => rule } : {}
   storage_account_id         = var.default_enabled == false ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
   default_action             = lookup(each.value, "default_action", "Deny")
   ip_rules                   = lookup(each.value, "ip_rules", null)
@@ -291,6 +291,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vent-link-1" {
   name                  = var.existing_private_dns_zone == null ? format("%s-pdz-vnet-link-storage", module.labels.id) : format("%s-pdz-vnet-link-storage-1", module.labels.id)
   resource_group_name   = local.valid_rg_name
   private_dns_zone_name = local.private_dns_zone_name
+  virtual_network_id    = var.virtual_network_id
+  tags                  = module.labels.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "vent-link-diff-subs" {
+  provider              = azurerm.peer
+  count                 = var.multi_sub_vnet_link && var.existing_private_dns_zone != null ? 1 : 0
+  name                  = format("%s-pdz-vnet-link-storage-1", module.labels.id)
+  resource_group_name   = var.existing_private_dns_zone_resource_group_name
+  private_dns_zone_name = var.existing_private_dns_zone
   virtual_network_id    = var.virtual_network_id
   tags                  = module.labels.tags
 }
