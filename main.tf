@@ -229,13 +229,13 @@ provider "azurerm" {
 
 resource "azurerm_private_endpoint" "pep" {
   count               = var.enabled && var.enable_private_endpoint ? 1 : 0
-  name                = format("%s-pe-storage", module.labels.id)
+  name                = format("%s-%s-pe", module.labels.id, var.storage_account_name)
   location            = local.location
   resource_group_name = local.resource_group_name
   subnet_id           = var.subnet_id
   tags                = module.labels.tags
   private_service_connection {
-    name                           = format("%s-psc-storage", module.labels.id)
+    name                           = format("%s-%s-psc", module.labels.id, var.storage_account_name)
     is_manual_connection           = false
     private_connection_resource_id = var.default_enabled == false ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
     subresource_names              = ["blob"]
