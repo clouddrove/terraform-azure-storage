@@ -201,6 +201,7 @@ Here is an example of how you can use this module in your inventory structure:
 | metrics | n/a | `list(string)` | <pre>[<br>  "Transaction",<br>  "Capacity"<br>]</pre> | no |
 | metrics\_enabled | n/a | `list(bool)` | <pre>[<br>  true,<br>  true<br>]</pre> | no |
 | min\_tls\_version | The minimum supported TLS version for the storage account | `string` | `"TLS1_2"` | no |
+| multi\_sub\_vnet\_link | Flag to control creation of vnet link for dns zone in different subscription | `bool` | `false` | no |
 | name | Name  (e.g. `app` or `cluster`). | `string` | `""` | no |
 | network\_rules | List of objects that represent the configuration of each network rules. | `list(object({ default_action = string, ip_rules = list(string), bypass = list(string) }))` | <pre>[<br>  {<br>    "bypass": [<br>      "AzureServices"<br>    ],<br>    "default_action": "Deny",<br>    "ip_rules": [<br>      "0.0.0.0/0"<br>    ]<br>  }<br>]</pre> | no |
 | object\_id | n/a | `list(string)` | `[]` | no |
