@@ -48,7 +48,7 @@ module "subnet" {
 module "vault" {
   depends_on = [module.resource_group, module.vnet]
   source     = "clouddrove/key-vault/azure"
-  version    = "1.0.4"
+  version    = "1.0.5"
 
   name        = "appdvgcyus23654"
   environment = "test"
