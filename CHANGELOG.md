@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.8] - 2023-05-05
+### :sparkles: New Features
+- [`f965b40`](https://github.com/clouddrove/terraform-azure-storage/commit/f965b404036b400bdfaa9fec3227bf022086d6c3) - auto changelog action added *(commit by [@anmolnagpal](https://github.com/anmolnagpal))*
+- [`97a8ab9`](https://github.com/clouddrove/terraform-azure-storage/commit/97a8ab9e74c9141955aa03c803ed4065f403c082) - added dependabot.yml file *(commit by [@themaheshyadav](https://github.com/themaheshyadav))*
+
+
 ## [1.0.7] - 2022-04-07
 ### :bug: Bug Fixes
 - [`255fa86`](https://github.com/clouddrove/terraform-azure-storage/commit/255fa8601d76d549b104c9faa83e8b959a500add) - Fix - storage account private endpoint is possible if it's in the same vnet
@@ -48,3 +54,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.5]: https://github.com/clouddrove/terraform-azure-storage/compare/1.0.4...1.0.5
 [1.0.6]: https://github.com/clouddrove/terraform-azure-storage/compare/1.0.5...1.0.6
 [1.0.7]: https://github.com/clouddrove/terraform-azure-storage/compare/1.0.5...1.0.6
+
+[1.0.8]: https://github.com/clouddrove/terraform-azure-storage/compare/1.0.7...1.0.8
