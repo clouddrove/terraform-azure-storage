@@ -5,7 +5,8 @@ provider "azurerm" {
 
 ## Resource Group
 module "resource_group" {
-  source = "clouddrove/resource-group/azure"
+  source  = "clouddrove/resource-group/azure"
+  version = "1.0.2"
 
   label_order = ["name", "environment", ]
   name        = "appe"
@@ -65,7 +66,6 @@ module "storage" {
   source               = "../.."
   name                 = "app"
   environment          = "test"
-  label_order          = ["name", "environment"]
   default_enabled      = true
   resource_group_name  = module.resource_group.resource_group_name
   location             = module.resource_group.resource_group_location
