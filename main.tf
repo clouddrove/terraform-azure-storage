@@ -104,6 +104,7 @@ resource "azurerm_role_assignment" "identity_assigned" {
 }
 
 resource "azurerm_key_vault_key" "kvkey" {
+  depends_on   = [azurerm_role_assignment.identity_assigned]
   count        = var.enabled && var.default_enabled == false ? 1 : 0
   name         = format("cmk-%s", module.labels.id)
   key_vault_id = var.key_vault_id
