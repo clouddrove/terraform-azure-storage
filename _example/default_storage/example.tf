@@ -17,7 +17,7 @@ module "resource_group" {
 #Vnet
 module "vnet" {
   source  = "clouddrove/vnet/azure"
-  version = "1.0.2"
+  version = "1.0.3"
 
   name                = "app"
   environment         = "test"
