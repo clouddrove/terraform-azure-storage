@@ -1,6 +1,8 @@
-
 data "azurerm_client_config" "current" {}
 
+##----------------------------------------------------------------------------- 
+## Labels module callled that will be used for naming and tags.   
+##-----------------------------------------------------------------------------
 module "labels" {
   source      = "clouddrove/labels/azure"
   version     = "1.0.0"
@@ -11,6 +13,10 @@ module "labels" {
   repository  = var.repository
 }
 
+##----------------------------------------------------------------------------- 
+## Below resource will create Storage Account resource with custormer managed key encryption and its components.  
+## To create storage account with cmk(customer managed key) encryption set 'var.default_enabled = false'. 
+##-----------------------------------------------------------------------------
 resource "azurerm_storage_account" "storage" {
   count                             = var.enabled && var.default_enabled == false ? 1 : 0
   depends_on                        = [azurerm_role_assignment.identity_assigned]
@@ -55,6 +61,10 @@ resource "azurerm_storage_account" "storage" {
   }
 }
 
+##----------------------------------------------------------------------------- 
+## Below resource will create Storage Account resource without custormer managed key encryption and its components.   
+## To create storage account without cmk(customer managed key) encryption set 'var.default_enabled = true'. 
+##-----------------------------------------------------------------------------
 resource "azurerm_storage_account" "default_storage" {
   count                             = var.enabled && var.default_enabled == true ? 1 : 0
   name                              = var.storage_account_name
@@ -88,6 +98,11 @@ resource "azurerm_storage_account" "default_storage" {
     }
   }
 }
+
+##----------------------------------------------------------------------------- 
+## Below resource will create user assigned identity in your azure environment. 
+## This user assigned identity will be created when storage account with cmk is created.    
+##-----------------------------------------------------------------------------
 resource "azurerm_user_assigned_identity" "identity" {
   count               = var.enabled && var.default_enabled == false ? 1 : 0
   location            = var.location
@@ -95,18 +110,24 @@ resource "azurerm_user_assigned_identity" "identity" {
   resource_group_name = var.resource_group_name
 }
 
+##----------------------------------------------------------------------------- 
+## Below resource will assign 'Key Vault Crypto Service Encryption User' role to user assigned identity created above. 
+##-----------------------------------------------------------------------------
 resource "azurerm_role_assignment" "identity_assigned" {
   depends_on           = [azurerm_user_assigned_identity.identity]
-  count                = var.enabled && var.default_enabled == false ? 1 : 0
+  count                = var.enabled && var.default_enabled == false && var.key_vault_rbac_auth_enabled ? 1 : 0
   principal_id         = join("", azurerm_user_assigned_identity.identity.*.principal_id)
   scope                = var.key_vault_id
   role_definition_name = "Key Vault Crypto Service Encryption User"
 }
 
+##----------------------------------------------------------------------------- 
+## Below resource will will create key vault key that will be used for encryption.  
+##-----------------------------------------------------------------------------
 resource "azurerm_key_vault_key" "kvkey" {
   depends_on   = [azurerm_role_assignment.identity_assigned]
   count        = var.enabled && var.default_enabled == false ? 1 : 0
-  name         = format("cmk-%s", module.labels.id)
+  name         = format("storage-%s-cmk-key", module.labels.id)
   key_vault_id = var.key_vault_id
   key_type     = "RSA"
   key_size     = 2048
@@ -120,7 +141,9 @@ resource "azurerm_key_vault_key" "kvkey" {
   ]
 }
 
-# Network Rules
+##----------------------------------------------------------------------------- 
+## Below resource will create network rules for storage account.  
+##-----------------------------------------------------------------------------
 resource "azurerm_storage_account_network_rules" "network-rules" {
   for_each                   = var.enabled ? { for rule in var.network_rules : rule.default_action => rule } : {}
   storage_account_id         = var.default_enabled == false ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
@@ -130,15 +153,21 @@ resource "azurerm_storage_account_network_rules" "network-rules" {
   bypass                     = lookup(each.value, "bypass", null)
 }
 
-## Storage Account Threat Protection
+##----------------------------------------------------------------------------- 
+## Below resource will create threat protection for storage account. 
+##-----------------------------------------------------------------------------
 resource "azurerm_advanced_threat_protection" "atp" {
   count              = var.enabled ? 1 : 0
   target_resource_id = var.default_enabled == false ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
   enabled            = var.enable_advanced_threat_protection
 }
 
+##----------------------------------------------------------------------------- 
+## Below resource will create access policy for user whose object id will be mentioned. 
+## This resource is not required when key vault has role based authorization(rbac) enabled.  
+##-----------------------------------------------------------------------------
 resource "azurerm_key_vault_access_policy" "example" {
-  count        = var.enabled && var.default_enabled == false ? length(var.object_id) : 0
+  count        = var.enabled && var.default_enabled == false && var.key_vault_rbac_auth_enabled == false ? length(var.object_id) : 0
   key_vault_id = var.key_vault_id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = element(var.object_id, count.index)
@@ -163,7 +192,9 @@ resource "azurerm_key_vault_access_policy" "example" {
   ]
 }
 
-## Storage Container
+##----------------------------------------------------------------------------- 
+## Below resource will create container in storage account.
+##-----------------------------------------------------------------------------
 resource "azurerm_storage_container" "container" {
   count                 = length(var.containers_list)
   name                  = var.containers_list[count.index].name
@@ -171,7 +202,9 @@ resource "azurerm_storage_container" "container" {
   container_access_type = var.containers_list[count.index].access_type
 }
 
-## Storage File Share
+##----------------------------------------------------------------------------- 
+## Below resource will create file share in storage account.  
+##-----------------------------------------------------------------------------
 resource "azurerm_storage_share" "fileshare" {
   count                = length(var.file_shares)
   name                 = var.file_shares[count.index].name
@@ -179,21 +212,27 @@ resource "azurerm_storage_share" "fileshare" {
   quota                = var.file_shares[count.index].quota
 }
 
-## Storage Tables
+##----------------------------------------------------------------------------- 
+## Below resource will create tables in storage account.  
+##-----------------------------------------------------------------------------
 resource "azurerm_storage_table" "tables" {
   count                = length(var.tables)
   name                 = var.tables[count.index]
   storage_account_name = var.key_vault_id != null ? join("", azurerm_storage_account.storage.*.name) : join("", azurerm_storage_account.default_storage.*.name)
 }
 
-## Storage Queues
+##----------------------------------------------------------------------------- 
+## Below resource will create queue in storage account.  
+##-----------------------------------------------------------------------------
 resource "azurerm_storage_queue" "queues" {
   count                = length(var.queues)
   name                 = var.queues[count.index]
   storage_account_name = var.key_vault_id != null ? join("", azurerm_storage_account.storage.*.name) : join("", azurerm_storage_account.default_storage.*.name)
 }
 
-## Management Policies
+##----------------------------------------------------------------------------- 
+## Below resource will create management policy for storage account.  
+##-----------------------------------------------------------------------------
 resource "azurerm_storage_management_policy" "lifecycle_management" {
   count              = var.enabled && var.management_policy_enable ? length(var.management_policy) : 0
   storage_account_id = var.default_enabled == false ? join("", azurerm_storage_account.storage.*.id) : join("", azurerm_storage_account.default_storage.*.id)
@@ -222,12 +261,19 @@ resource "azurerm_storage_management_policy" "lifecycle_management" {
   }
 }
 
+##----------------------------------------------------------------------------- 
+## Provider block
+## To be used only when there is existing private dns zone in different subscription. Mention other subscription id in 'var.alias_sub'. 
+##-----------------------------------------------------------------------------
 provider "azurerm" {
   alias = "peer"
   features {}
   subscription_id = var.alias_sub
 }
 
+##----------------------------------------------------------------------------- 
+## Below resource will create private endpoint for storage account. 
+##-----------------------------------------------------------------------------
 resource "azurerm_private_endpoint" "pep" {
   count               = var.enabled && var.enable_private_endpoint ? 1 : 0
   name                = format("%s-%s-pe", module.labels.id, var.storage_account_name)
@@ -249,6 +295,9 @@ resource "azurerm_private_endpoint" "pep" {
   }
 }
 
+##----------------------------------------------------------------------------- 
+## Locals declaration to determine the resource group in which exsisting private dns zone is present. 
+##-----------------------------------------------------------------------------
 locals {
   resource_group_name   = var.resource_group_name
   location              = var.location
@@ -256,6 +305,10 @@ locals {
   private_dns_zone_name = var.existing_private_dns_zone == null ? join("", azurerm_private_dns_zone.dnszone.*.name) : var.existing_private_dns_zone
 }
 
+##----------------------------------------------------------------------------- 
+## Data block to retreive private ip of private endpoint.
+## Will work when storage account with cmk encryption. 
+##-----------------------------------------------------------------------------
 data "azurerm_private_endpoint_connection" "private-ip-0" {
   count               = var.enabled && var.enable_private_endpoint && var.default_enabled == false ? 1 : 0
   name                = join("", azurerm_private_endpoint.pep.*.name)
@@ -263,6 +316,10 @@ data "azurerm_private_endpoint_connection" "private-ip-0" {
   depends_on          = [azurerm_storage_account.storage]
 }
 
+##----------------------------------------------------------------------------- 
+## Data block to retreive private ip of private endpoint.
+## Will work when storage account without cmk encryption. 
+##-----------------------------------------------------------------------------
 data "azurerm_private_endpoint_connection" "private-ip-1" {
   count               = var.enabled && var.enable_private_endpoint && var.default_enabled == true ? 1 : 0
   name                = join("", azurerm_private_endpoint.pep.*.name)
@@ -270,6 +327,10 @@ data "azurerm_private_endpoint_connection" "private-ip-1" {
   depends_on          = [azurerm_storage_account.default_storage]
 }
 
+##----------------------------------------------------------------------------- 
+## Below resource will create private dns zone in your azure subscription. 
+## Will be created only when there is no existing private dns zone and private endpoint is enabled. 
+##-----------------------------------------------------------------------------
 resource "azurerm_private_dns_zone" "dnszone" {
   count               = var.enabled && var.existing_private_dns_zone == null && var.enable_private_endpoint ? 1 : 0
   name                = "privatelink.blob.core.windows.net"
@@ -277,6 +338,10 @@ resource "azurerm_private_dns_zone" "dnszone" {
   tags                = module.labels.tags
 }
 
+##----------------------------------------------------------------------------- 
+## Below resource will create vnet link in private dns.
+## Vnet link will be created when there is no existing private dns zone or existing private dns zone is in same subscription.  
+##-----------------------------------------------------------------------------
 resource "azurerm_private_dns_zone_virtual_network_link" "vent-link" {
   count                 = var.enabled && var.enable_private_endpoint && (var.existing_private_dns_zone != null ? (var.existing_private_dns_zone_resource_group_name == "" ? false : true) : true) && var.diff_sub == false ? 1 : 0
   name                  = var.existing_private_dns_zone == null ? format("%s-pdz-vnet-link-storage", module.labels.id) : format("%s-pdz-vnet-link-storage-1", module.labels.id)
@@ -286,6 +351,10 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vent-link" {
   tags                  = module.labels.tags
 }
 
+##----------------------------------------------------------------------------- 
+## Below resource will create vnet link in existing private dns zone. 
+## Vnet link will be created when existing private dns zone is in different subscription. 
+##-----------------------------------------------------------------------------
 resource "azurerm_private_dns_zone_virtual_network_link" "vent-link-1" {
   provider              = azurerm.peer
   count                 = var.enabled && var.enable_private_endpoint && var.diff_sub == true ? 1 : 0
@@ -296,6 +365,11 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vent-link-1" {
   tags                  = module.labels.tags
 }
 
+##----------------------------------------------------------------------------- 
+## Below resource will create vnet link in existing private dns zone. 
+## Vnet link will be created when existing private dns zone is in different subscription. 
+## This resource is deployed when more than 1 vnet link is required and module can be called again to do so without deploying other storage account resources. 
+##-----------------------------------------------------------------------------
 resource "azurerm_private_dns_zone_virtual_network_link" "vent-link-diff-subs" {
   provider              = azurerm.peer
   count                 = var.multi_sub_vnet_link && var.existing_private_dns_zone != null ? 1 : 0
@@ -306,6 +380,10 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vent-link-diff-subs" {
   tags                  = module.labels.tags
 }
 
+##----------------------------------------------------------------------------- 
+## Below resource will create vnet link in private dns zone. 
+## Below resource will be created when extra vnet link is required in dns zone in same subscription. 
+##-----------------------------------------------------------------------------
 resource "azurerm_private_dns_zone_virtual_network_link" "addon_vent_link" {
   count                 = var.enabled && var.addon_vent_link ? 1 : 0
   name                  = format("%s-pdz-vnet-link-storage-addon", module.labels.id)
@@ -315,6 +393,9 @@ resource "azurerm_private_dns_zone_virtual_network_link" "addon_vent_link" {
   tags                  = module.labels.tags
 }
 
+##----------------------------------------------------------------------------- 
+## Below resource will create dns A record for private ip of private endpoint in private dns zone. 
+##-----------------------------------------------------------------------------
 resource "azurerm_private_dns_a_record" "arecord" {
   count               = var.enabled && var.enable_private_endpoint && var.diff_sub == false ? 1 : 0
   name                = var.key_vault_id != null ? join("", azurerm_storage_account.storage.*.name) : join("", azurerm_storage_account.default_storage.*.name)
@@ -329,6 +410,11 @@ resource "azurerm_private_dns_a_record" "arecord" {
     ]
   }
 }
+
+##----------------------------------------------------------------------------- 
+## Below resource will create dns A record for private ip of private endpoint in private dns zone. 
+## This resource will be created when private dns is in different subscription. 
+##-----------------------------------------------------------------------------
 resource "azurerm_private_dns_a_record" "arecord1" {
   count               = var.enabled && var.enable_private_endpoint && var.diff_sub == true ? 1 : 0
   provider            = azurerm.peer
@@ -345,6 +431,9 @@ resource "azurerm_private_dns_a_record" "arecord1" {
   }
 }
 
+##----------------------------------------------------------------------------- 
+## Below resources will create diagnostic setting for storage account and its components. 
+##-----------------------------------------------------------------------------
 resource "azurerm_monitor_diagnostic_setting" "storage" {
   count                          = var.enabled && var.enable_diagnostic ? 1 : 0
   name                           = format("storage-diagnostic-log")
@@ -377,11 +466,10 @@ resource "azurerm_monitor_diagnostic_setting" "datastorage" {
   eventhub_authorization_rule_id = var.eventhub_authorization_rule_id
   log_analytics_workspace_id     = var.log_analytics_workspace_id
 
-  dynamic "log" {
+  dynamic "enabled_log" {
     for_each = var.logs
     content {
-      category = log.value
-      enabled  = true
+      category = enabled_log.value
       retention_policy {
         days    = var.days
         enabled = var.retention_policy_enabled
