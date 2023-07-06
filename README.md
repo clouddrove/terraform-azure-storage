@@ -161,9 +161,8 @@ Here is an example of how you can use this module in your inventory structure:
 | addon\_resource\_group\_name | The name of the addon vnet resource group | `string` | `""` | no |
 | addon\_vent\_link | The name of the addon vnet | `bool` | `false` | no |
 | addon\_virtual\_network\_id | The name of the addon vnet link vnet id | `string` | `""` | no |
-| alias | n/a | `string` | `null` | no |
 | alias\_sub | n/a | `string` | `null` | no |
-| allow\_nested\_items\_to\_be\_public | Allow or disallow nested items within this Account to opt into being public. Defaults to true. | `bool` | `true` | no |
+| allow\_nested\_items\_to\_be\_public | Allow or disallow nested items within this Account to opt into being public. Defaults to true. | `bool` | `false` | no |
 | containers\_list | List of containers to create and their access levels. | `list(object({ name = string, access_type = string }))` | `[]` | no |
 | cross\_tenant\_replication\_enabled | Should cross Tenant replication be enabled? Defaults to true. | `bool` | `true` | no |
 | datastorages | n/a | `list(string)` | <pre>[<br>  "blob",<br>  "queue",<br>  "table",<br>  "file"<br>]</pre> | no |
@@ -183,18 +182,17 @@ Here is an example of how you can use this module in your inventory structure:
 | existing\_private\_dns\_zone | Name of the existing private DNS zone | `string` | `null` | no |
 | existing\_private\_dns\_zone\_resource\_group\_name | The name of the existing resource group | `string` | `""` | no |
 | file\_shares | List of containers to create and their access levels. | `list(object({ name = string, quota = number }))` | `[]` | no |
-| identity\_ids | Specifies a list of User Assigned Managed Identity IDs to be assigned to this Storage Account. | `list(string)` | `null` | no |
 | identity\_type | Specifies the type of Managed Service Identity that should be configured on this Storage Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both). | `string` | `"SystemAssigned"` | no |
 | infrastructure\_encryption\_enabled | Is infrastructure encryption enabled? Changing this forces a new resource to be created. Defaults to false. | `bool` | `true` | no |
 | is\_hns\_enabled | Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2. Changing this forces a new resource to be created. | `bool` | `false` | no |
 | key\_vault\_id | n/a | `string` | `null` | no |
+| key\_vault\_rbac\_auth\_enabled | Is key vault has role base access enable or not. | `bool` | `false` | no |
 | label\_order | Label order, e.g. sequence of application name and environment `name`,`environment`,'attribute' [`webserver`,`qa`,`devops`,`public`,] . | `list(any)` | <pre>[<br>  "name",<br>  "environment"<br>]</pre> | no |
 | last\_access\_time\_enabled | (Optional) Is the last access time based tracking enabled? Default to true. | `bool` | `false` | no |
 | location | The location/region to keep all your network resources. To get the list of all locations with table format from azure cli, run 'az account list-locations -o table' | `string` | `"North Europe"` | no |
 | log\_analytics\_destination\_type | Possible values are AzureDiagnostics and Dedicated, default to AzureDiagnostics. When set to Dedicated, logs sent to a Log Analytics workspace will go into resource specific tables, instead of the legacy AzureDiagnostics table. | `string` | `"AzureDiagnostics"` | no |
 | log\_analytics\_workspace\_id | log analytics workspace id to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
 | logs | n/a | `list(string)` | <pre>[<br>  "StorageWrite",<br>  "StorageRead",<br>  "StorageDelete"<br>]</pre> | no |
-| logs\_enabled | n/a | `list(bool)` | <pre>[<br>  true,<br>  true<br>]</pre> | no |
 | managedby | ManagedBy, eg 'Identos'. | `string` | `""` | no |
 | management\_policy | Configure Azure Storage firewalls and virtual networks | <pre>list(object({<br>    prefix_match               = set(string),<br>    tier_to_cool_after_days    = number,<br>    tier_to_archive_after_days = number,<br>    delete_after_days          = number,<br>    snapshot_delete_after_days = number<br>  }))</pre> | <pre>[<br>  {<br>    "delete_after_days": 100,<br>    "prefix_match": null,<br>    "snapshot_delete_after_days": 30,<br>    "tier_to_archive_after_days": 50,<br>    "tier_to_cool_after_days": 0<br>  }<br>]</pre> | no |
 | management\_policy\_enable | n/a | `bool` | `false` | no |
@@ -203,9 +201,8 @@ Here is an example of how you can use this module in your inventory structure:
 | min\_tls\_version | The minimum supported TLS version for the storage account | `string` | `"TLS1_2"` | no |
 | multi\_sub\_vnet\_link | Flag to control creation of vnet link for dns zone in different subscription | `bool` | `false` | no |
 | name | Name  (e.g. `app` or `cluster`). | `string` | `""` | no |
-| network\_rules | List of objects that represent the configuration of each network rules. | `list(object({ default_action = string, ip_rules = list(string), bypass = list(string) }))` | <pre>[<br>  {<br>    "bypass": [<br>      "AzureServices"<br>    ],<br>    "default_action": "Deny",<br>    "ip_rules": [<br>      "0.0.0.0/0"<br>    ]<br>  }<br>]</pre> | no |
+| network\_rules | List of objects that represent the configuration of each network rules. | `map` | `{}` | no |
 | object\_id | n/a | `list(string)` | `[]` | no |
-| principal\_id | The ID of the Principal (User, Group or Service Principal) to assign the Role Definition to. Changing this forces a new resource to be created. | `list(string)` | `[]` | no |
 | public\_network\_access\_enabled | Whether the public network access is enabled? Defaults to true. | `bool` | `true` | no |
 | queues | List of storages queues | `list(string)` | `[]` | no |
 | repository | Terraform current module repo | `string` | `"https://github.com/clouddrove/terraform-azure-storage.git"` | no |
@@ -218,8 +215,6 @@ Here is an example of how you can use this module in your inventory structure:
 | storage\_account\_name | The name of the azure storage account | `string` | `""` | no |
 | subnet\_id | The resource ID of the subnet | `string` | `""` | no |
 | tables | List of storage tables. | `list(string)` | `[]` | no |
-| tags | A map of tags to add to all resources | `map(string)` | `{}` | no |
-| user\_assigned\_identity\_id | The ID of a user assigned identity. | `string` | `null` | no |
 | versioning\_enabled | Is versioning enabled? Default to false. | `bool` | `true` | no |
 | virtual\_network\_id | The name of the virtual network | `string` | `""` | no |
 
