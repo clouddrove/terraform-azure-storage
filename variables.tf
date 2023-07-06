@@ -36,13 +36,6 @@ variable "enabled" {
   default     = true
 }
 
-
-variable "tags" {
-  description = "A map of tags to add to all resources"
-  type        = map(string)
-  default     = {}
-}
-
 variable "resource_group_name" {
   type        = string
   default     = ""
@@ -109,12 +102,7 @@ variable "containers_list" {
 }
 
 variable "network_rules" {
-  type = list(object({ default_action = string, ip_rules = list(string), bypass = list(string) }))
-  default = [{
-    default_action = "Deny"
-    ip_rules       = ["0.0.0.0/0"]
-    bypass         = ["AzureServices"]
-  }]
+  default     = {}
   description = "List of objects that represent the configuration of each network rules."
 }
 
@@ -180,11 +168,6 @@ variable "management_policy" {
   }]
 }
 
-variable "user_assigned_identity_id" {
-  type        = string
-  default     = null
-  description = " The ID of a user assigned identity."
-}
 # Identity
 variable "identity_type" {
   description = "Specifies the type of Managed Service Identity that should be configured on this Storage Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both)."
@@ -192,19 +175,9 @@ variable "identity_type" {
   default     = "SystemAssigned"
 }
 
-variable "identity_ids" {
-  description = "Specifies a list of User Assigned Managed Identity IDs to be assigned to this Storage Account."
-  type        = list(string)
-  default     = null
-}
 variable "key_vault_id" {
   type    = string
   default = null
-}
-variable "principal_id" {
-  type        = list(string)
-  default     = []
-  description = " The ID of the Principal (User, Group or Service Principal) to assign the Role Definition to. Changing this forces a new resource to be created."
 }
 
 variable "shared_access_key_enabled" {
@@ -234,7 +207,7 @@ variable "cross_tenant_replication_enabled" {
 }
 variable "allow_nested_items_to_be_public" {
   type        = bool
-  default     = true
+  default     = false
   description = "Allow or disallow nested items within this Account to opt into being public. Defaults to true."
 }
 
@@ -365,11 +338,6 @@ variable "logs" {
   default = ["StorageWrite", "StorageRead", "StorageDelete"]
 }
 
-variable "logs_enabled" {
-  type    = list(bool)
-  default = [true, true]
-}
-
 variable "datastorages" {
   type    = list(string)
   default = ["blob", "queue", "table", "file"]
@@ -386,10 +354,6 @@ variable "diff_sub" {
   description = "The name of the addon vnet "
 }
 
-variable "alias" {
-  type    = string
-  default = null
-}
 variable "management_policy_enable" {
   type    = bool
   default = false
@@ -420,4 +384,10 @@ variable "multi_sub_vnet_link" {
   type        = bool
   default     = false
   description = "Flag to control creation of vnet link for dns zone in different subscription"
+}
+
+variable "key_vault_rbac_auth_enabled" {
+  type        = bool
+  default     = false
+  description = "Is key vault has role base access enable or not."
 }
