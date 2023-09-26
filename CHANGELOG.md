@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.9] - 2023-09-26
+### :bug: Bug Fixes
+- [`ce51387`](https://github.com/clouddrove/terraform-azure-storage/commit/ce51387b147571079f5a97657f0997037a81b347) - Updated access policy condition, network rules variable and added comments *(commit by [@13archit](https://github.com/13archit))*
+- [`6883a83`](https://github.com/clouddrove/terraform-azure-storage/commit/6883a83b295a542f6534fc6baf6136107844bc8a) - Updated example folder hierarchy and dependabot.yml *(commit by [@13archit](https://github.com/13archit))*
+
+### :construction_worker: Build System
+- [`1e32e66`](https://github.com/clouddrove/terraform-azure-storage/commit/1e32e66616e035c5ee6247ff683849de5e07249f) - added tfsec workflow *(commit by [@anmolnagpal](https://github.com/anmolnagpal))*
+
+### :memo: Documentation Changes
+- [`d081d08`](https://github.com/clouddrove/terraform-azure-storage/commit/d081d08a902edc43dd8582bb698e6736145774c0) - update CHANGELOG.md for 1.0.8 *(commit by [@13archit](https://github.com/13archit))*
+
+
 ## [1.0.8] - 2023-05-05
 ### :sparkles: New Features
 - [`f965b40`](https://github.com/clouddrove/terraform-azure-storage/commit/f965b404036b400bdfaa9fec3227bf022086d6c3) - auto changelog action added *(commit by [@anmolnagpal](https://github.com/anmolnagpal))*
@@ -56,3 +68,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.7]: https://github.com/clouddrove/terraform-azure-storage/compare/1.0.5...1.0.6
 
 [1.0.8]: https://github.com/clouddrove/terraform-azure-storage/compare/1.0.7...1.0.8
+[1.0.9]: https://github.com/clouddrove/terraform-azure-storage/compare/1.0.8...1.0.9
