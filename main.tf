@@ -139,7 +139,7 @@ resource "azurerm_key_vault_key" "kvkey" {
     "verify",
     "wrapKey",
   ]
-   rotation_policy {
+  rotation_policy {
     automatic {
       time_before_expiry = "P30D"
     }
