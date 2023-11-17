@@ -125,13 +125,13 @@ resource "azurerm_role_assignment" "identity_assigned" {
 ## Below resource will will create key vault key that will be used for encryption.  
 ##-----------------------------------------------------------------------------
 resource "azurerm_key_vault_key" "kvkey" {
-  depends_on   = [azurerm_role_assignment.identity_assigned]
-  count        = var.enabled && var.default_enabled == false ? 1 : 0
-  name         = format("storage-%s-cmk-key", module.labels.id)
-  expiration_date  = "2023-12-31T18:29:59Z"
-  key_vault_id = var.key_vault_id
-  key_type     = "RSA"
-  key_size     = 2048
+  depends_on      = [azurerm_role_assignment.identity_assigned]
+  count           = var.enabled && var.default_enabled == false ? 1 : 0
+  name            = format("storage-%s-cmk-key", module.labels.id)
+  expiration_date = "2023-12-31T18:29:59Z"
+  key_vault_id    = var.key_vault_id
+  key_type        = "RSA"
+  key_size        = 2048
   key_opts = [
     "decrypt",
     "encrypt",
