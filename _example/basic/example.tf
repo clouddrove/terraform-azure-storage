@@ -1,3 +1,7 @@
+provider "azurerm" {
+  features {}
+}
+
 locals {
   name        = "app"
   environment = "test"
@@ -33,7 +37,7 @@ module "storage" {
 
   management_policy_enable = true
   #enable private endpoint
-  virtual_network_id         = "/subscriptions/--------------<vnet_id>---------------"
-  subnet_id                  = "/subscriptions/--------------<subnet_id>---------------"
-  log_analytics_workspace_id = "/subscriptions/--------------<log_analytics_workspace_id>---------------"
+  # virtual_network_id         = "/subscriptions/--------------<vnet_id>---------------"
+  # subnet_id                  = "/subscriptions/--------------<subnet_id>---------------"
+  # log_analytics_workspace_id = "/subscriptions/--------------<log_analytics_workspace_id>---------------"
 }
