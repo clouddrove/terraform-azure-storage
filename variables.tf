@@ -180,6 +180,12 @@ variable "key_vault_id" {
   default = null
 }
 
+variable "expiration_date" {
+  type        = string
+  default     = "2023-12-31T18:29:59Z"
+  description = "Expiration UTC datetime (Y-m-d'T'H:M:S'Z')"
+}
+
 variable "shared_access_key_enabled" {
   type        = bool
   default     = true
