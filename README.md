@@ -175,6 +175,7 @@ Here is an example of how you can use this module in your inventory structure:
 | eventhub\_name | Eventhub Name to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
 | existing\_private\_dns\_zone | Name of the existing private DNS zone | `string` | `null` | no |
 | existing\_private\_dns\_zone\_resource\_group\_name | The name of the existing resource group | `string` | `""` | no |
+| expiration\_date | Expiration UTC datetime (Y-m-d'T'H:M:S'Z') | `string` | `"2023-12-31T18:29:59Z"` | no |
 | file\_shares | List of containers to create and their access levels. | `list(object({ name = string, quota = number }))` | `[]` | no |
 | identity\_type | Specifies the type of Managed Service Identity that should be configured on this Storage Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both). | `string` | `"SystemAssigned"` | no |
 | infrastructure\_encryption\_enabled | Is infrastructure encryption enabled? Changing this forces a new resource to be created. Defaults to false. | `bool` | `true` | no |
