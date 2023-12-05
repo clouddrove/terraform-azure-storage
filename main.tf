@@ -125,12 +125,13 @@ resource "azurerm_role_assignment" "identity_assigned" {
 ## Below resource will will create key vault key that will be used for encryption.  
 ##-----------------------------------------------------------------------------
 resource "azurerm_key_vault_key" "kvkey" {
-  depends_on   = [azurerm_role_assignment.identity_assigned]
-  count        = var.enabled && var.default_enabled == false ? 1 : 0
-  name         = format("storage-%s-cmk-key", module.labels.id)
-  key_vault_id = var.key_vault_id
-  key_type     = "RSA"
-  key_size     = 2048
+  depends_on      = [azurerm_role_assignment.identity_assigned]
+  count           = var.enabled && var.default_enabled == false ? 1 : 0
+  name            = format("storage-%s-cmk-key", module.labels.id)
+  expiration_date = var.expiration_date
+  key_vault_id    = var.key_vault_id
+  key_type        = "RSA"
+  key_size        = 2048
   key_opts = [
     "decrypt",
     "encrypt",
@@ -139,6 +140,14 @@ resource "azurerm_key_vault_key" "kvkey" {
     "verify",
     "wrapKey",
   ]
+  rotation_policy {
+    automatic {
+      time_before_expiry = "P30D"
+    }
+
+    expire_after         = "P90D"
+    notify_before_expiry = "P29D"
+  }
 }
 
 ##----------------------------------------------------------------------------- 
