@@ -106,6 +106,36 @@ variable "network_rules" {
   description = "List of objects that represent the configuration of each network rules."
 }
 
+variable "table_encryption_key_type" {
+  default     = "Account"
+  description = "The encryption type of the table service. Possible values are 'Service' and 'Account'."
+}
+
+variable "queue_encryption_key_type" {
+  default     = "Account"
+  description = "The encryption type of the queue service. Possible values are 'Service' and 'Account'."
+}
+
+variable "large_file_share_enabled" {
+  type        = bool
+  default     = false
+  description = "Is Large File Share Enabled?"
+}
+
+variable "nfsv3_enabled" {
+  type        = bool
+  default     = false
+  description = "Is NFSv3 protocol enabled? Changing this forces a new resource to be created."
+}
+
+variable "edge_zone" {
+  type        = string
+  default     = null
+  description = "Specifies the Edge Zone within the Azure Region where this Storage Account should exist."
+}
+
+
+
 #network_rules = [
 #  {
 #    default_action = "Deny"
@@ -168,11 +198,90 @@ variable "management_policy" {
   }]
 }
 
+# Static Website
+variable "static_website_config" {
+  type = object({
+    index_document     = optional(string)
+    error_404_document = optional(string)
+  })
+  default     = null
+  description = "Static website configuration. Can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`."
+}
+
+# Routing
+variable "enable_routing" {
+  type        = bool
+  default     = false
+  description = "Whether or not to enable routing"
+}
+
+variable "publish_internet_endpoints" {
+  type        = bool
+  default     = false
+  description = "Should internet routing storage endpoints be published?"
+}
+
+variable "publish_microsoft_endpoints" {
+  type        = bool
+  default     = false
+  description = "Should Microsoft routing storage endpoints be published? "
+}
+
+variable "choice" {
+  type        = string
+  default     = "MicrosoftRouting"
+  description = "Specifies the kind of network routing opted by the user. Possible values are InternetRouting and MicrosoftRouting. Defaults to MicrosoftRouting."
+}
+
+# Share Properties
+variable "file_share_cors_rules" {
+  type = object({
+    allowed_headers    = list(string)
+    allowed_methods    = list(string)
+    allowed_origins    = list(string)
+    exposed_headers    = list(string)
+    max_age_in_seconds = number
+  })
+  default     = null
+  description = "Storage Account file shares CORS rule. Please refer to the [documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account#cors_rule) for more information."
+}
+
+variable "file_share_retention_policy_in_days" {
+  type        = number
+  default     = null
+  description = "Storage Account file shares retention policy in days. Enabling this may require additional directory permissions."
+}
+
+variable "file_share_properties_smb" {
+  type = object({
+    versions                        = optional(list(string), null)
+    authentication_types            = optional(list(string), null)
+    kerberos_ticket_encryption_type = optional(list(string), null)
+    channel_encryption_type         = optional(list(string), null)
+    multichannel_enabled            = optional(bool, null)
+  })
+  default     = null
+  description = "Storage Account file shares smb properties."
+}
+
+# Custom Domain
+variable "custom_domain_name" {
+  type        = string
+  default     = null
+  description = "The Custom Domain Name to use for the Storage Account, which will be validated by Azure."
+}
+
+variable "use_subdomain" {
+  type        = bool
+  default     = false
+  description = "Should the Custom Domain Name be validated by using indirect CNAME validation?"
+}
+
 # Identity
 variable "identity_type" {
   description = "Specifies the type of Managed Service Identity that should be configured on this Storage Account. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both)."
   type        = string
-  default     = "SystemAssigned"
+  default     = "UserAssigned"
 }
 
 variable "key_vault_id" {
@@ -238,7 +347,7 @@ variable "subnet_id" {
 
 variable "enable_private_endpoint" {
   type        = bool
-  default     = true
+  default     = false
   description = "enable or disable private endpoint to storage account"
 }
 
@@ -275,7 +384,7 @@ variable "addon_virtual_network_id" {
 
 variable "versioning_enabled" {
   type        = bool
-  default     = true
+  default     = false
   description = "Is versioning enabled? Default to false."
 }
 
@@ -289,7 +398,7 @@ variable "last_access_time_enabled" {
 
 variable "enable_diagnostic" {
   type        = bool
-  default     = true
+  default     = false
   description = "Set to false to prevent the module from creating the diagnosys setting for the NSG Resource.."
 }
 
@@ -381,11 +490,6 @@ variable "diagnostic_log_days" {
   description = " The number of days for which this Retention Policy should apply."
 }
 
-variable "default_enabled" {
-  type    = bool
-  default = false
-}
-
 variable "multi_sub_vnet_link" {
   type        = bool
   default     = false
@@ -396,4 +500,19 @@ variable "key_vault_rbac_auth_enabled" {
   type        = bool
   default     = false
   description = "Is key vault has role base access enable or not."
+}
+
+variable "cmk_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to create CMK or not"
+}
+
+variable "rotation_policy" {
+  type = map(object({
+    time_before_expiry   = string
+    expire_after         = string
+    notify_before_expiry = string
+  }))
+  default = {}
 }

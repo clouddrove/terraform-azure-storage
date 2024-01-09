@@ -1,9 +1,12 @@
 provider "azurerm" {
+  storage_use_azuread = true
   features {}
 }
 
+data "azurerm_client_config" "current_client_config" {}
+
 locals {
-  name        = "app"
+  name        = "storage1"
   environment = "test"
   label_order = ["name", "environment"]
 }
@@ -52,7 +55,6 @@ module "subnet" {
   #subnet
   subnet_names    = ["subnet1"]
   subnet_prefixes = ["10.0.1.0/24"]
-
 }
 
 ##----------------------------------------------------------------------------- 
@@ -74,36 +76,75 @@ module "log-analytics" {
   log_analytics_workspace_location = module.resource_group.resource_group_location
 }
 
+##----------------------------------------------------------------------------- 
+## Key Vault module call.
+##-----------------------------------------------------------------------------
+module "vault" {
+  source  = "clouddrove/key-vault/azure"
+  version = "1.1.0"
+
+  name                = "vault27825"
+  environment         = "test"
+  label_order         = ["name", "environment", ]
+  resource_group_name = module.resource_group.resource_group_name
+  location            = module.resource_group.resource_group_location
+  # reader_objects_ids        = [data.azurerm_client_config.current_client_config.object_id]
+  admin_objects_ids         = [data.azurerm_client_config.current_client_config.object_id]
+  virtual_network_id        = join("", module.vnet.vnet_id)
+  subnet_id                 = module.subnet.default_subnet_id[0]
+  enable_rbac_authorization = false
+  network_acls = {
+    bypass         = "AzureServices"
+    default_action = "Deny"
+    ip_rules       = ["0.0.0.0/0"]
+  }
+  #private endpoint
+  enable_private_endpoint = false
+  ########Following to be uncommnented only when using DNS Zone from different subscription along with existing DNS zone.
+
+  # diff_sub                                      = true
+  # alias                                         = ""
+  # alias_sub                                     = ""
+
+  #########Following to be uncommmented when using DNS zone from different resource group or different subscription.
+  # existing_private_dns_zone                     = ""
+  # existing_private_dns_zone_resource_group_name = ""
+
+  #### enable diagnostic setting
+  diagnostic_setting_enable  = false
+  log_analytics_workspace_id = module.log-analytics.workspace_id ## when diagnostic_setting_enable enable,  add log analytics workspace id
+}
 
 ##----------------------------------------------------------------------------- 
 ## Storage module call.
-## Here default storage will be deployed i.e. storage account without cmk encryption. 
+## Here default storage will be deployed. 
 ##-----------------------------------------------------------------------------
 module "storage" {
   source                        = "../.."
   name                          = local.name
   environment                   = local.environment
-  default_enabled               = true
+  label_order                   = local.label_order
   resource_group_name           = module.resource_group.resource_group_name
   location                      = module.resource_group.resource_group_location
-  storage_account_name          = "stordtyrey36"
-  public_network_access_enabled = false
+  storage_account_name          = "strge36473"
+  public_network_access_enabled = true
+  account_kind                  = "StorageV2"
+  account_tier                  = "Standard"
+  identity_type                 = "UserAssigned"
+  object_id                     = [data.azurerm_client_config.current_client_config.object_id]
+  account_replication_type      = "ZRS"
+  ###customer_managed_key can only be set when the account_kind is set to StorageV2 or account_tier set to Premium, and the identity type is UserAssigned.
+  key_vault_id = module.vault.id
   ##   Storage Container
   containers_list = [
     { name = "app-test", access_type = "private" },
-    { name = "app2", access_type = "private" },
   ]
-  ##   Storage File Share
-  file_shares = [
-    { name = "fileshare1", quota = 5 },
-  ]
-  ##   Storage Tables
   tables = ["table1"]
-  ## Storage Queues
   queues = ["queue1"]
+  file_shares = [
+    { name = "file-test", quota = "10" },
+  ]
 
-  management_policy_enable = true
-  #enable private endpoint
   virtual_network_id         = module.vnet.vnet_id[0]
   subnet_id                  = module.subnet.default_subnet_id[0]
   log_analytics_workspace_id = module.log-analytics.workspace_id
