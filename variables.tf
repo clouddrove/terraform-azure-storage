@@ -134,16 +134,6 @@ variable "edge_zone" {
   description = "Specifies the Edge Zone within the Azure Region where this Storage Account should exist."
 }
 
-
-
-#network_rules = [
-#  {
-#    default_action = "Deny"
-#    ip_rules       = ["0.0.0.0/0"]
-#    bypass         = ["AzureServices"]
-#  }
-#]
-
 variable "is_hns_enabled" {
   description = "Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2. Changing this forces a new resource to be created."
   type        = bool
@@ -183,10 +173,10 @@ variable "queues" {
 variable "management_policy" {
   description = "Configure Azure Storage firewalls and virtual networks"
   type = list(object({
-    prefix_match               = set(string),
-    tier_to_cool_after_days    = number,
-    tier_to_archive_after_days = number,
-    delete_after_days          = number,
+    prefix_match               = set(string)
+    tier_to_cool_after_days    = number
+    tier_to_archive_after_days = number
+    delete_after_days          = number
     snapshot_delete_after_days = number
   }))
   default = [{
@@ -208,40 +198,62 @@ variable "static_website_config" {
   description = "Static website configuration. Can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`."
 }
 
+# Queue Property Logging
+variable "queue_properties_logging" {
+  description = "Logging queue properties"
+  type = object({
+    delete                = optional(bool)
+    read                  = optional(bool)
+    write                 = optional(bool)
+    version               = optional(string)
+    retention_policy_days = optional(number)
+  })
+  default = {
+    delete                = true
+    read                  = true
+    write                 = true
+    version               = "1.0"
+    retention_policy_days = 7
+  }
+}
+
 # Routing
 variable "enable_routing" {
   type        = bool
   default     = false
-  description = "Whether or not to enable routing"
+  description = "Enable or disable the creation of the routing block."
 }
 
-variable "publish_internet_endpoints" {
-  type        = bool
-  default     = false
-  description = "Should internet routing storage endpoints be published?"
-}
-
-variable "publish_microsoft_endpoints" {
-  type        = bool
-  default     = false
-  description = "Should Microsoft routing storage endpoints be published? "
-}
-
-variable "choice" {
-  type        = string
-  default     = "MicrosoftRouting"
-  description = "Specifies the kind of network routing opted by the user. Possible values are InternetRouting and MicrosoftRouting. Defaults to MicrosoftRouting."
+variable "routing" {
+  type = list(object({
+    publish_internet_endpoints  = bool
+    publish_microsoft_endpoints = bool
+    choice                      = string
+  }))
+  default = [
+    {
+      publish_internet_endpoints  = false
+      publish_microsoft_endpoints = false
+      choice                      = "MicrosoftRouting"
+    }
+  ]
 }
 
 # Share Properties
+variable "enable_file_share_cors_rules" {
+  type        = bool
+  default     = false
+  description = "Whether or not enable file share cors rules. "
+}
+
 variable "file_share_cors_rules" {
-  type = object({
+  type = list(object({
     allowed_headers    = list(string)
     allowed_methods    = list(string)
     allowed_origins    = list(string)
     exposed_headers    = list(string)
     max_age_in_seconds = number
-  })
+  }))
   default     = null
   description = "Storage Account file shares CORS rule. Please refer to the [documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account#cors_rule) for more information."
 }
@@ -254,11 +266,11 @@ variable "file_share_retention_policy_in_days" {
 
 variable "file_share_properties_smb" {
   type = object({
-    versions                        = optional(list(string), null)
-    authentication_types            = optional(list(string), null)
-    kerberos_ticket_encryption_type = optional(list(string), null)
-    channel_encryption_type         = optional(list(string), null)
-    multichannel_enabled            = optional(bool, null)
+    versions                        = optional(list(string))
+    authentication_types            = optional(list(string))
+    kerberos_ticket_encryption_type = optional(list(string))
+    channel_encryption_type         = optional(list(string))
+    multichannel_enabled            = optional(bool)
   })
   default     = null
   description = "Storage Account file shares smb properties."
@@ -331,8 +343,13 @@ variable "object_id" {
   default = []
 }
 
-## Private endpoint
+variable "allowed_copy_scope" {
+  type        = string
+  default     = "PrivateLink"
+  description = "Restrict copy to and from Storage Accounts within an AAD tenant or with Private Links to the same VNet. Possible values are AAD and PrivateLink."
+}
 
+## Private endpoint
 variable "virtual_network_id" {
   type        = string
   default     = ""
@@ -382,20 +399,160 @@ variable "addon_virtual_network_id" {
   description = "The name of the addon vnet link vnet id"
 }
 
-variable "versioning_enabled" {
-  type        = bool
-  default     = false
-  description = "Is versioning enabled? Default to false."
+# Data protection
+variable "storage_blob_data_protection" {
+  description = "Storage account blob Data protection parameters."
+  type = object({
+    change_feed_enabled                       = optional(bool, false)
+    versioning_enabled                        = optional(bool, false)
+    last_access_time_enabled                  = optional(bool, false)
+    delete_retention_policy_in_days           = optional(number, 0)
+    container_delete_retention_policy_in_days = optional(number, 0)
+    container_point_in_time_restore           = optional(bool, false)
+  })
+  default = {
+    change_feed_enabled                       = false
+    last_access_time_enabled                  = false
+    versioning_enabled                        = false
+    delete_retention_policy_in_days           = 7
+    container_delete_retention_policy_in_days = 7
+  }
 }
 
-variable "last_access_time_enabled" {
+variable "storage_blob_cors_rule" {
+  description = "Storage Account blob CORS rule. Please refer to the [documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account#cors_rule) for more information."
+  type = object({
+    allowed_headers    = list(string)
+    allowed_methods    = list(string)
+    allowed_origins    = list(string)
+    exposed_headers    = list(string)
+    max_age_in_seconds = number
+  })
+  default = null
+}
+
+variable "restore_policy" {
   type        = bool
   default     = false
-  description = "(Optional) Is the last access time based tracking enabled? Default to true."
+  description = "Wheteher or not create restore policy"
+}
+
+# Minute Metrics
+variable "enable_minute_metrics" {
+  type        = bool
+  default     = false
+  description = "Enable or disable the creation of the minute_metrics block."
+}
+
+variable "minute_metrics" {
+  type = list(object({
+    enabled               = bool
+    version               = string
+    include_apis          = bool
+    retention_policy_days = number
+  }))
+  default = [
+    {
+      enabled               = false
+      version               = ""
+      include_apis          = false
+      retention_policy_days = 7
+    }
+  ]
+}
+
+# Hour Metrics
+variable "enable_hour_metrics" {
+  type        = bool
+  default     = false
+  description = "Enable or disable the creation of the hour_metrics block."
+}
+
+variable "hour_metrics" {
+  type = object({
+    enabled               = bool
+    version               = string
+    include_apis          = bool
+    retention_policy_days = number
+  })
+  default = {
+    enabled               = false
+    version               = ""
+    include_apis          = false
+    retention_policy_days = 7
+  }
+}
+
+# File Share Authentication
+variable "file_share_authentication" {
+  description = "Storage Account file shares authentication configuration."
+  type = object({
+    directory_type = string
+    active_directory = optional(object({
+      storage_sid         = string
+      domain_name         = string
+      domain_sid          = string
+      domain_guid         = string
+      forest_name         = string
+      netbios_domain_name = string
+    }))
+  })
+  default = null
+
+  validation {
+    condition = var.file_share_authentication == null || (
+      contains(["AADDS", "AD", ""], try(var.file_share_authentication.directory_type, ""))
+    )
+    error_message = "`file_share_authentication.directory_type` can only be `AADDS` or `AD`."
+  }
+  validation {
+    condition = var.file_share_authentication == null || (
+      try(var.file_share_authentication.directory_type, null) == "AADDS" || (
+        try(var.file_share_authentication.directory_type, null) == "AD" &&
+        try(var.file_share_authentication.active_directory, null) != null
+      )
+    )
+    error_message = "`file_share_authentication.active_directory` block is required when `file_share_authentication.directory_type` is set to `AD`."
+  }
+}
+
+# Private Link Access
+variable "enable_private_link_access" {
+  type        = bool
+  default     = false
+  description = "Enable or disable the creation of the private_link_access."
+}
+
+variable "private_link_access" {
+  description = "List of Privatelink objects to allow access from."
+  type = list(object({
+    endpoint_resource_id = string
+    endpoint_tenant_id   = string
+  }))
+  default = []
+}
+
+# SAS Policy
+variable "enable_sas_policy" {
+  description = "Enable or disable the creation of the sas_policy block."
+  type        = bool
+  default     = false
+}
+
+variable "sas_policy_settings" {
+  type = list(object({
+    expiration_period = string
+    expiration_action = string
+  }))
+  default = [
+    {
+      expiration_period = "7.00:00:00"
+      expiration_action = "Log"
+    }
+  ]
 }
 
 # Diagnosis Settings Enable
-
 variable "enable_diagnostic" {
   type        = bool
   default     = false
@@ -506,6 +663,12 @@ variable "cmk_enabled" {
   type        = bool
   default     = false
   description = "Whether to create CMK or not"
+}
+
+variable "enable_rotation_policy" {
+  type        = bool
+  default     = false
+  description = "Whether or not to enable rotation policy"
 }
 
 variable "rotation_policy" {

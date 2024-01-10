@@ -40,15 +40,54 @@ resource "azurerm_storage_account" "storage" {
   large_file_share_enabled          = var.large_file_share_enabled
   edge_zone                         = var.edge_zone
   nfsv3_enabled                     = var.nfsv3_enabled
-  tags                              = module.labels.tags
   table_encryption_key_type         = var.table_encryption_key_type
   queue_encryption_key_type         = var.queue_encryption_key_type
-  blob_properties {
-    delete_retention_policy {
-      days = var.soft_delete_retention
+  allowed_copy_scope                = var.allowed_copy_scope
+  tags                              = module.labels.tags
+  dynamic "blob_properties" {
+    for_each = (
+      var.account_kind != "FileStorage" && (var.storage_blob_data_protection != null || var.storage_blob_cors_rule != null) ? [1] : []
+    )
+    content {
+      change_feed_enabled      = var.nfsv3_enabled || var.sftp_enabled ? false : var.storage_blob_data_protection.change_feed_enabled
+      versioning_enabled       = var.nfsv3_enabled || var.sftp_enabled ? false : var.storage_blob_data_protection.versioning_enabled
+      last_access_time_enabled = var.nfsv3_enabled || var.sftp_enabled ? false : var.storage_blob_data_protection.last_access_time_enabled
+      dynamic "cors_rule" {
+        for_each = var.storage_blob_cors_rule != null ? [1] : []
+        content {
+          allowed_headers    = var.storage_blob_cors_rule.allowed_headers
+          allowed_methods    = var.storage_blob_cors_rule.allowed_methods
+          allowed_origins    = var.storage_blob_cors_rule.allowed_origins
+          exposed_headers    = var.storage_blob_cors_rule.exposed_headers
+          max_age_in_seconds = var.storage_blob_cors_rule.max_age_in_seconds
+        }
+      }
+      dynamic "delete_retention_policy" {
+        for_each = var.storage_blob_data_protection.delete_retention_policy_in_days > 0 ? [1] : []
+        content {
+          days = var.storage_blob_data_protection.delete_retention_policy_in_days
+        }
+      }
+      dynamic "container_delete_retention_policy" {
+        for_each = var.storage_blob_data_protection.container_delete_retention_policy_in_days > 0 ? [1] : []
+        content {
+          days = var.storage_blob_data_protection.container_delete_retention_policy_in_days
+        }
+      }
+      dynamic "restore_policy" {
+        for_each = var.restore_policy ? [1] : []
+        content {
+          days = var.storage_blob_data_protection.container_delete_retention_policy_in_days - 1
+        }
+      }
     }
-    versioning_enabled       = var.versioning_enabled
-    last_access_time_enabled = var.last_access_time_enabled
+  }
+  dynamic "sas_policy" {
+    for_each = var.enable_sas_policy ? var.sas_policy_settings : []
+    content {
+      expiration_period = sas_policy.value.expiration_period
+      expiration_action = sas_policy.value.expiration_action
+    }
   }
   dynamic "custom_domain" {
     for_each = var.custom_domain_name != null ? [1] : []
@@ -64,35 +103,81 @@ resource "azurerm_storage_account" "storage" {
       error_404_document = var.static_website_config.error_404_document
     }
   }
-  dynamic "routing" {
-    for_each = var.enable_routing != null ? [1] : []
+  dynamic "azure_files_authentication" {
+    for_each = var.file_share_authentication != null ? [1] : []
     content {
-      publish_internet_endpoints  = var.publish_internet_endpoints
-      publish_microsoft_endpoints = var.publish_microsoft_endpoints
-      choice                      = var.choice
+      directory_type = var.file_share_authentication.directory_type
+      dynamic "active_directory" {
+        for_each = var.file_share_authentication.directory_type == "AD" ? [var.file_share_authentication.active_directory] : []
+        iterator = ad
+        content {
+          storage_sid         = ad.value.storage_sid
+          domain_name         = ad.value.domain_name
+          domain_sid          = ad.value.domain_sid
+          domain_guid         = ad.value.domain_guid
+          forest_name         = ad.value.forest_name
+          netbios_domain_name = ad.value.netbios_domain_name
+        }
+      }
+    }
+  }
+  dynamic "routing" {
+    for_each = var.enable_routing ? var.routing : []
+    content {
+      publish_internet_endpoints  = routing.value.publish_internet_endpoints
+      publish_microsoft_endpoints = routing.value.publish_microsoft_endpoints
+      choice                      = routing.value.choice
+    }
+  }
+  dynamic "queue_properties" {
+    for_each = var.queue_properties_logging != null && contains(["Storage", "StorageV2"], var.account_kind) ? [1] : []
+    content {
+      logging {
+        delete                = var.queue_properties_logging.delete
+        read                  = var.queue_properties_logging.read
+        write                 = var.queue_properties_logging.write
+        version               = var.queue_properties_logging.version
+        retention_policy_days = var.queue_properties_logging.retention_policy_days
+      }
+      dynamic "hour_metrics" {
+        for_each = var.enable_hour_metrics ? var.hour_metrics : {}
+        content {
+          enabled               = hour_metrics.value.enabled
+          version               = hour_metrics.value.version
+          include_apis          = hour_metrics.value.include_apis
+          retention_policy_days = hour_metrics.value.retention_policy_days
+        }
+      }
+      dynamic "minute_metrics" {
+        for_each = var.enable_minute_metrics ? toset(var.minute_metrics) : []
+        content {
+          enabled               = minute_metrics.value.enabled
+          version               = minute_metrics.value.version
+          include_apis          = minute_metrics.value.include_apis
+          retention_policy_days = minute_metrics.value.retention_policy_days
+        }
+      }
     }
   }
   dynamic "share_properties" {
     for_each = var.file_share_cors_rules != null && var.file_share_retention_policy_in_days != null && var.file_share_properties_smb != null ? [1] : []
     content {
       dynamic "cors_rule" {
-        for_each = var.file_share_cors_rules != null ? [1] : []
+        for_each = var.enable_file_share_cors_rules ? var.file_share_cors_rules : []
         content {
-          allowed_headers    = var.file_share_cors_rules.allowed_headers
-          allowed_methods    = var.file_share_cors_rules.allowed_methods
-          allowed_origins    = var.file_share_cors_rules.allowed_origins
-          exposed_headers    = var.file_share_cors_rules.exposed_headers
-          max_age_in_seconds = var.file_share_cors_rules.max_age_in_seconds
+          allowed_headers    = file_share_cors_rules.value.allowed_headers
+          allowed_methods    = file_share_cors_rules.value.allowed_methods
+          allowed_origins    = file_share_cors_rules.value.allowed_origins
+          exposed_headers    = file_share_cors_rules.value.exposed_headers
+          max_age_in_seconds = file_share_cors_rules.value.max_age_in_seconds
         }
       }
-
       dynamic "retention_policy" {
         for_each = var.file_share_retention_policy_in_days != null ? [1] : []
         content {
           days = var.file_share_retention_policy_in_days
         }
       }
-
       dynamic "smb" {
         for_each = var.file_share_properties_smb != null ? [1] : []
         content {
@@ -144,11 +229,11 @@ resource "azurerm_role_assignment" "identity_assigned" {
 }
 
 ##----------------------------------------------------------------------------- 
-## Below resource will will create key vault key that will be used for encryption.  
+## Below resource will create key vault key that will be used for encryption.  
 ##-----------------------------------------------------------------------------
 resource "azurerm_key_vault_key" "kvkey" {
   depends_on      = [azurerm_role_assignment.identity_assigned]
-  count           = var.enabled ? 1 : 0
+  count           = var.enabled && var.cmk_enabled ? 1 : 0
   name            = format("storage-%s-cmk-testing", module.labels.id)
   expiration_date = var.expiration_date
   key_vault_id    = var.key_vault_id
@@ -162,9 +247,8 @@ resource "azurerm_key_vault_key" "kvkey" {
     "verify",
     "wrapKey",
   ]
-
   dynamic "rotation_policy" {
-    for_each = var.rotation_policy
+    for_each = var.enable_rotation_policy ? var.rotation_policy : {}
     content {
       automatic {
         time_before_expiry = rotation_policy.value.time_before_expiry
@@ -186,6 +270,13 @@ resource "azurerm_storage_account_network_rules" "network-rules" {
   ip_rules                   = lookup(each.value, "ip_rules", null)
   virtual_network_subnet_ids = lookup(each.value, "virtual_network_subnet_ids", null)
   bypass                     = lookup(each.value, "bypass", null)
+  dynamic "private_link_access" {
+    for_each = var.enable_private_link_access ? var.private_link_access : []
+    content {
+      endpoint_resource_id = private_link_access.value.endpoint_resource_id
+      endpoint_tenant_id   = coalesce(private_link_access.value.endpoint_tenant_id, data.azuread_tenant.current.tenant_id)
+    }
+  }
 }
 
 ##----------------------------------------------------------------------------- 
@@ -333,7 +424,6 @@ resource "azurerm_private_endpoint" "pep" {
     private_connection_resource_id = join("", azurerm_storage_account.storage.*.id)
     subresource_names              = ["blob"]
   }
-
   lifecycle {
     ignore_changes = [
       tags,

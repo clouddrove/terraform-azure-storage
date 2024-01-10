@@ -6,7 +6,7 @@ provider "azurerm" {
 data "azurerm_client_config" "current_client_config" {}
 
 locals {
-  name        = "storage1"
+  name        = "storage"
   environment = "test"
   label_order = ["name", "environment"]
 }
@@ -83,7 +83,7 @@ module "vault" {
   source  = "clouddrove/key-vault/azure"
   version = "1.1.0"
 
-  name                = "vault27825"
+  name                = "vault9825"
   environment         = "test"
   label_order         = ["name", "environment", ]
   resource_group_name = module.resource_group.resource_group_name
@@ -126,7 +126,7 @@ module "storage" {
   label_order                   = local.label_order
   resource_group_name           = module.resource_group.resource_group_name
   location                      = module.resource_group.resource_group_location
-  storage_account_name          = "strge36473"
+  storage_account_name          = "strge56563"
   public_network_access_enabled = true
   account_kind                  = "StorageV2"
   account_tier                  = "Standard"
