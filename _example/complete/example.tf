@@ -67,7 +67,7 @@ module "log-analytics" {
   name                             = local.name
   environment                      = local.environment
   label_order                      = local.label_order
-  create_log_analytics_workspace   = true
+  create_log_analytics_workspace   = false
   log_analytics_workspace_sku      = "PerGB2018"
   daily_quota_gb                   = "-1"
   internet_ingestion_enabled       = true
@@ -83,21 +83,17 @@ module "vault" {
   source  = "clouddrove/key-vault/azure"
   version = "1.1.0"
 
-  name                = "vault9825"
-  environment         = "test"
-  label_order         = ["name", "environment", ]
-  resource_group_name = module.resource_group.resource_group_name
-  location            = module.resource_group.resource_group_location
-  # reader_objects_ids        = [data.azurerm_client_config.current_client_config.object_id]
-  admin_objects_ids         = [data.azurerm_client_config.current_client_config.object_id]
-  virtual_network_id        = join("", module.vnet.vnet_id)
-  subnet_id                 = module.subnet.default_subnet_id[0]
-  enable_rbac_authorization = false
-  network_acls = {
-    bypass         = "AzureServices"
-    default_action = "Deny"
-    ip_rules       = ["0.0.0.0/0"]
-  }
+  name                        = "vault8767768"
+  environment                 = "test"
+  label_order                 = ["name", "environment", ]
+  resource_group_name         = module.resource_group.resource_group_name
+  location                    = module.resource_group.resource_group_location
+  admin_objects_ids           = [data.azurerm_client_config.current_client_config.object_id]
+  virtual_network_id          = join("", module.vnet.vnet_id)
+  subnet_id                   = module.subnet.default_subnet_id[0]
+  enable_rbac_authorization   = true
+  enabled_for_disk_encryption = false
+  network_acls                = null
   #private endpoint
   enable_private_endpoint = false
   ########Following to be uncommnented only when using DNS Zone from different subscription along with existing DNS zone.
@@ -111,13 +107,13 @@ module "vault" {
   # existing_private_dns_zone_resource_group_name = ""
 
   #### enable diagnostic setting
-  diagnostic_setting_enable  = false
+  diagnostic_setting_enable  = true
   log_analytics_workspace_id = module.log-analytics.workspace_id ## when diagnostic_setting_enable enable,  add log analytics workspace id
 }
 
 ##----------------------------------------------------------------------------- 
 ## Storage module call.
-## Here default storage will be deployed. 
+## Here storage account will be deployed with CMK encryption. 
 ##-----------------------------------------------------------------------------
 module "storage" {
   source                        = "../.."
@@ -126,13 +122,15 @@ module "storage" {
   label_order                   = local.label_order
   resource_group_name           = module.resource_group.resource_group_name
   location                      = module.resource_group.resource_group_location
-  storage_account_name          = "strge56563"
+  storage_account_name          = "storage877656"
   public_network_access_enabled = true
   account_kind                  = "StorageV2"
   account_tier                  = "Standard"
   identity_type                 = "UserAssigned"
   object_id                     = [data.azurerm_client_config.current_client_config.object_id]
   account_replication_type      = "ZRS"
+  cmk_enabled                   = true
+
   ###customer_managed_key can only be set when the account_kind is set to StorageV2 or account_tier set to Premium, and the identity type is UserAssigned.
   key_vault_id = module.vault.id
   ##   Storage Container
@@ -142,7 +140,7 @@ module "storage" {
   tables = ["table1"]
   queues = ["queue1"]
   file_shares = [
-    { name = "file-test", quota = "10" },
+    { name = "fileshare", quota = "10" },
   ]
 
   virtual_network_id         = module.vnet.vnet_id[0]

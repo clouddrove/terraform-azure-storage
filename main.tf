@@ -200,8 +200,8 @@ resource "azurerm_storage_account" "storage" {
   dynamic "customer_managed_key" {
     for_each = var.cmk_enabled ? [1] : []
     content {
-      key_vault_key_id          = var.key_vault_id != null ? join("", azurerm_key_vault_key.kvkey.*.id) : null
-      user_assigned_identity_id = var.key_vault_id != null ? join("", azurerm_user_assigned_identity.identity.*.id) : null
+      key_vault_key_id          = var.key_vault_id != null ? azurerm_key_vault_key.kvkey[0].id : null
+      user_assigned_identity_id = var.key_vault_id != null ? azurerm_user_assigned_identity.identity[0].id : null
     }
   }
 }
@@ -211,9 +211,9 @@ resource "azurerm_storage_account" "storage" {
 ## This user assigned identity will be created when storage account with cmk is created.    
 ##-----------------------------------------------------------------------------
 resource "azurerm_user_assigned_identity" "identity" {
-  count               = var.enabled ? 1 : 0
+  count               = var.enabled && var.cmk_enabled ? 1 : 0
   location            = var.location
-  name                = format("midd-storage-%s", module.labels.id)
+  name                = format("%s-storage-mid", module.labels.id)
   resource_group_name = var.resource_group_name
 }
 
@@ -223,7 +223,7 @@ resource "azurerm_user_assigned_identity" "identity" {
 resource "azurerm_role_assignment" "identity_assigned" {
   depends_on           = [azurerm_user_assigned_identity.identity]
   count                = var.enabled && var.key_vault_rbac_auth_enabled ? 1 : 0
-  principal_id         = join("", azurerm_user_assigned_identity.identity.*.principal_id)
+  principal_id         = azurerm_user_assigned_identity.identity[0].principal_id
   scope                = var.key_vault_id
   role_definition_name = "Key Vault Crypto Service Encryption User"
 }
@@ -232,9 +232,9 @@ resource "azurerm_role_assignment" "identity_assigned" {
 ## Below resource will create key vault key that will be used for encryption.  
 ##-----------------------------------------------------------------------------
 resource "azurerm_key_vault_key" "kvkey" {
-  depends_on      = [azurerm_role_assignment.identity_assigned]
+  depends_on      = [azurerm_role_assignment.identity_assigned, azurerm_user_assigned_identity.identity]
   count           = var.enabled && var.cmk_enabled ? 1 : 0
-  name            = format("storage-%s-cmk-testing", module.labels.id)
+  name            = format("%s-storage-key-vault-key", module.labels.id)
   expiration_date = var.expiration_date
   key_vault_id    = var.key_vault_id
   key_type        = "RSA"
@@ -624,10 +624,11 @@ resource "azurerm_monitor_diagnostic_setting" "storage-nic" {
   }
 }
 
-resource "azurerm_storage_account_customer_managed_key" "example" {
-  count                     = var.enabled && var.cmk_enabled ? 1 : 0
-  storage_account_id        = join("", azurerm_storage_account.storage.*.id)
-  key_vault_id              = var.key_vault_id
-  key_name                  = join("", azurerm_key_vault_key.kvkey.*.name)
-  user_assigned_identity_id = join("", azurerm_user_assigned_identity.identity.*.id)
-}
+# resource "azurerm_storage_account_customer_managed_key" "example" {
+#   depends_on = [ azurerm_storage_account.storage ]
+#   count                     = var.enabled && var.cmk_enabled ? 1 : 0
+#   storage_account_id        = join("", azurerm_storage_account.storage.*.id)
+#   key_vault_id              = var.key_vault_id
+#   key_name                  = join("", azurerm_key_vault_key.kvkey.*.name)
+#   user_assigned_identity_id = join("", azurerm_user_assigned_identity.identity.*.id)
+# }

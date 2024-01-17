@@ -16,7 +16,6 @@ module "storage" {
   source                        = "../.."
   name                          = local.name
   environment                   = local.environment
-  default_enabled               = true
   resource_group_name           = "app-test-rg"
   location                      = "Central India"
   storage_account_name          = "stordtyrey36"

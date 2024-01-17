@@ -303,7 +303,7 @@ variable "key_vault_id" {
 
 variable "expiration_date" {
   type        = string
-  default     = "2023-12-31T18:29:59Z"
+  default     = null
   description = "Expiration UTC datetime (Y-m-d'T'H:M:S'Z')"
 }
 
@@ -655,7 +655,7 @@ variable "multi_sub_vnet_link" {
 
 variable "key_vault_rbac_auth_enabled" {
   type        = bool
-  default     = false
+  default     = true
   description = "Is key vault has role base access enable or not."
 }
 
@@ -677,5 +677,5 @@ variable "rotation_policy" {
     expire_after         = string
     notify_before_expiry = string
   }))
-  default = {}
+  default = null
 }
