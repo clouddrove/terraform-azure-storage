@@ -298,7 +298,7 @@ variable "identity_type" {
 
 variable "key_vault_id" {
   type    = string
-  default = null
+  default = ""
 }
 
 variable "expiration_date" {
@@ -349,6 +349,12 @@ variable "allowed_copy_scope" {
   description = "Restrict copy to and from Storage Accounts within an AAD tenant or with Private Links to the same VNet. Possible values are AAD and PrivateLink."
 }
 
+variable "admin_objects_ids" {
+  description = "IDs of the objects that can do all operations on all keys, secrets and certificates."
+  type        = list(string)
+  default     = []
+}
+
 ## Private endpoint
 variable "virtual_network_id" {
   type        = string
@@ -376,7 +382,7 @@ variable "existing_private_dns_zone" {
 
 variable "existing_private_dns_zone_resource_group_name" {
   type        = string
-  default     = ""
+  default     = null
   description = "The name of the existing resource group"
 }
 
@@ -389,13 +395,13 @@ variable "addon_vent_link" {
 
 variable "addon_resource_group_name" {
   type        = string
-  default     = ""
+  default     = null
   description = "The name of the addon vnet resource group"
 }
 
 variable "addon_virtual_network_id" {
   type        = string
-  default     = ""
+  default     = null
   description = "The name of the addon vnet link vnet id"
 }
 
@@ -659,13 +665,13 @@ variable "key_vault_rbac_auth_enabled" {
   description = "Is key vault has role base access enable or not."
 }
 
-variable "cmk_enabled" {
+variable "cmk_encryption_enabled" {
   type        = bool
   default     = false
   description = "Whether to create CMK or not"
 }
 
-variable "enable_rotation_policy" {
+variable "rotation_policy_enabled" {
   type        = bool
   default     = false
   description = "Whether or not to enable rotation policy"

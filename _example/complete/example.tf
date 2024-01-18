@@ -83,7 +83,7 @@ module "vault" {
   source  = "clouddrove/key-vault/azure"
   version = "1.1.0"
 
-  name                        = "vault8767768"
+  name                        = "vault65960589"
   environment                 = "test"
   label_order                 = ["name", "environment", ]
   resource_group_name         = module.resource_group.resource_group_name
@@ -107,7 +107,7 @@ module "vault" {
   # existing_private_dns_zone_resource_group_name = ""
 
   #### enable diagnostic setting
-  diagnostic_setting_enable  = true
+  diagnostic_setting_enable  = false
   log_analytics_workspace_id = module.log-analytics.workspace_id ## when diagnostic_setting_enable enable,  add log analytics workspace id
 }
 
@@ -122,14 +122,15 @@ module "storage" {
   label_order                   = local.label_order
   resource_group_name           = module.resource_group.resource_group_name
   location                      = module.resource_group.resource_group_location
-  storage_account_name          = "storage877656"
+  storage_account_name          = "storage874682"
   public_network_access_enabled = true
   account_kind                  = "StorageV2"
   account_tier                  = "Standard"
   identity_type                 = "UserAssigned"
   object_id                     = [data.azurerm_client_config.current_client_config.object_id]
   account_replication_type      = "ZRS"
-  cmk_enabled                   = true
+  cmk_encryption_enabled        = true
+  admin_objects_ids             = [data.azurerm_client_config.current_client_config.object_id]
 
   ###customer_managed_key can only be set when the account_kind is set to StorageV2 or account_tier set to Premium, and the identity type is UserAssigned.
   key_vault_id = module.vault.id

@@ -19,7 +19,7 @@ module "labels" {
 ##-----------------------------------------------------------------------------
 resource "azurerm_storage_account" "storage" {
   count                             = var.enabled ? 1 : 0
-  depends_on                        = [azurerm_role_assignment.identity_assigned]
+  # depends_on                        = [azurerm_role_assignment.identity_assigned]
   name                              = var.storage_account_name
   resource_group_name               = var.resource_group_name
   location                          = var.location
@@ -191,14 +191,14 @@ resource "azurerm_storage_account" "storage" {
     }
   }
   dynamic "identity" {
-    for_each = var.identity_type != null ? [1] : []
+    for_each = var.cmk_encryption_enabled && var.identity_type != null ? [1] : []
     content {
       type         = var.identity_type
       identity_ids = var.identity_type == "UserAssigned" ? [join("", azurerm_user_assigned_identity.identity.*.id)] : null
     }
   }
   dynamic "customer_managed_key" {
-    for_each = var.cmk_enabled ? [1] : []
+    for_each = var.cmk_encryption_enabled ? [1] : []
     content {
       key_vault_key_id          = var.key_vault_id != null ? azurerm_key_vault_key.kvkey[0].id : null
       user_assigned_identity_id = var.key_vault_id != null ? azurerm_user_assigned_identity.identity[0].id : null
@@ -211,7 +211,7 @@ resource "azurerm_storage_account" "storage" {
 ## This user assigned identity will be created when storage account with cmk is created.    
 ##-----------------------------------------------------------------------------
 resource "azurerm_user_assigned_identity" "identity" {
-  count               = var.enabled && var.cmk_enabled ? 1 : 0
+  count               = var.enabled && var.cmk_encryption_enabled ? 1 : 0
   location            = var.location
   name                = format("%s-storage-mid", module.labels.id)
   resource_group_name = var.resource_group_name
@@ -222,18 +222,30 @@ resource "azurerm_user_assigned_identity" "identity" {
 ##-----------------------------------------------------------------------------
 resource "azurerm_role_assignment" "identity_assigned" {
   depends_on           = [azurerm_user_assigned_identity.identity]
-  count                = var.enabled && var.key_vault_rbac_auth_enabled ? 1 : 0
+  count                = var.enabled && var.cmk_encryption_enabled && var.key_vault_rbac_auth_enabled ? 1 : 0
   principal_id         = azurerm_user_assigned_identity.identity[0].principal_id
   scope                = var.key_vault_id
   role_definition_name = "Key Vault Crypto Service Encryption User"
+}
+
+##-----------------------------------------------------------------------------
+## Below resource will provide user access on key vault based on role base access in azure environment.
+## if rbac is enabled then below resource will create. 
+##-----------------------------------------------------------------------------
+resource "azurerm_role_assignment" "rbac_keyvault_crypto_officer" {
+  for_each = toset(var.key_vault_rbac_auth_enabled && var.enabled && var.cmk_encryption_enabled ? var.admin_objects_ids : [])
+
+  scope                = var.key_vault_id
+  role_definition_name = "Key Vault Crypto Officer"
+  principal_id         = each.value
 }
 
 ##----------------------------------------------------------------------------- 
 ## Below resource will create key vault key that will be used for encryption.  
 ##-----------------------------------------------------------------------------
 resource "azurerm_key_vault_key" "kvkey" {
-  depends_on      = [azurerm_role_assignment.identity_assigned, azurerm_user_assigned_identity.identity]
-  count           = var.enabled && var.cmk_enabled ? 1 : 0
+  depends_on      = [azurerm_role_assignment.identity_assigned, azurerm_role_assignment.rbac_keyvault_crypto_officer]
+  count           = var.enabled && var.cmk_encryption_enabled ? 1 : 0
   name            = format("%s-storage-key-vault-key", module.labels.id)
   expiration_date = var.expiration_date
   key_vault_id    = var.key_vault_id
@@ -248,7 +260,7 @@ resource "azurerm_key_vault_key" "kvkey" {
     "wrapKey",
   ]
   dynamic "rotation_policy" {
-    for_each = var.enable_rotation_policy ? var.rotation_policy : {}
+    for_each = var.rotation_policy_enabled ? var.rotation_policy : {}
     content {
       automatic {
         time_before_expiry = rotation_policy.value.time_before_expiry
@@ -264,7 +276,7 @@ resource "azurerm_key_vault_key" "kvkey" {
 ## Below resource will create network rules for storage account.  
 ##-----------------------------------------------------------------------------
 resource "azurerm_storage_account_network_rules" "network-rules" {
-  for_each                   = var.enabled == false ? { for rule in var.network_rules : rule.default_action => rule } : {}
+  for_each                   = var.enabled ? { for rule in var.network_rules : rule.default_action => rule } : {}
   storage_account_id         = join("", azurerm_storage_account.storage.*.id)
   default_action             = lookup(each.value, "default_action", "Deny")
   ip_rules                   = lookup(each.value, "ip_rules", null)
@@ -292,7 +304,7 @@ resource "azurerm_advanced_threat_protection" "atp" {
 ## Below resource will create access policy for user whose object id will be mentioned. 
 ## This resource is not required when key vault has role based authorization(rbac) enabled.  
 ##-----------------------------------------------------------------------------
-resource "azurerm_key_vault_access_policy" "example" {
+resource "azurerm_key_vault_access_policy" "keyvault-access-policy" {
   count        = var.enabled && var.key_vault_rbac_auth_enabled == false ? length(var.object_id) : 0
   key_vault_id = var.key_vault_id
   tenant_id    = data.azurerm_client_config.current.tenant_id
@@ -562,7 +574,7 @@ resource "azurerm_private_dns_a_record" "arecord1" {
 resource "azurerm_monitor_diagnostic_setting" "storage" {
   count                          = var.enabled && var.enable_diagnostic ? 1 : 0
   name                           = format("storage-diagnostic-log")
-  target_resource_id             = join("", azurerm_storage_account.storage.*.id) # "${azurerm_storage_account.default_storage[0].id}/blobServices/default/" : "${azurerm_storage_account.storage[0].id}/blobServices/default/" # "${azurerm_storage_account.core.id}/blobServices/default/"
+  target_resource_id             = join("", azurerm_storage_account.storage.*.id) 
   storage_account_id             = var.storage_account_id
   eventhub_name                  = var.eventhub_name
   eventhub_authorization_rule_id = var.eventhub_authorization_rule_id
@@ -623,12 +635,3 @@ resource "azurerm_monitor_diagnostic_setting" "storage-nic" {
     ignore_changes = [log_analytics_destination_type]
   }
 }
-
-# resource "azurerm_storage_account_customer_managed_key" "example" {
-#   depends_on = [ azurerm_storage_account.storage ]
-#   count                     = var.enabled && var.cmk_enabled ? 1 : 0
-#   storage_account_id        = join("", azurerm_storage_account.storage.*.id)
-#   key_vault_id              = var.key_vault_id
-#   key_name                  = join("", azurerm_key_vault_key.kvkey.*.name)
-#   user_assigned_identity_id = join("", azurerm_user_assigned_identity.identity.*.id)
-# }
