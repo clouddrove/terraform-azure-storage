@@ -26,7 +26,7 @@ module "storage" {
   account_replication_type      = "GRS"
 
   ## Encryption is not enabled for this Storage account
-  cmk_encryption_enabled        = false
+  cmk_encryption_enabled = false
 
   ##   Storage Container
   containers_list = [

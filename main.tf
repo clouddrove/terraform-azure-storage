@@ -18,7 +18,7 @@ module "labels" {
 ## To create storage account with cmk(customer managed key) encryption set 'var.default_enabled = false'. 
 ##-----------------------------------------------------------------------------
 resource "azurerm_storage_account" "storage" {
-  count                             = var.enabled ? 1 : 0
+  count = var.enabled ? 1 : 0
   # depends_on                        = [azurerm_role_assignment.identity_assigned]
   name                              = var.storage_account_name
   resource_group_name               = var.resource_group_name
@@ -574,7 +574,7 @@ resource "azurerm_private_dns_a_record" "arecord1" {
 resource "azurerm_monitor_diagnostic_setting" "storage" {
   count                          = var.enabled && var.enable_diagnostic ? 1 : 0
   name                           = format("storage-diagnostic-log")
-  target_resource_id             = join("", azurerm_storage_account.storage.*.id) 
+  target_resource_id             = join("", azurerm_storage_account.storage.*.id)
   storage_account_id             = var.storage_account_id
   eventhub_name                  = var.eventhub_name
   eventhub_authorization_rule_id = var.eventhub_authorization_rule_id
