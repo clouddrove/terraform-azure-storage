@@ -93,7 +93,6 @@ module "vault" {
   subnet_id                   = module.subnet.default_subnet_id[0]
   enable_rbac_authorization   = true
   enabled_for_disk_encryption = false
-  network_acls                = null
   #private endpoint
   enable_private_endpoint = false
   ########Following to be uncommnented only when using DNS Zone from different subscription along with existing DNS zone.
