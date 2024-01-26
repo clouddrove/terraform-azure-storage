@@ -18,8 +18,7 @@ module "labels" {
 ## To create storage account with cmk(customer managed key) encryption set 'var.default_enabled = false'. 
 ##-----------------------------------------------------------------------------
 resource "azurerm_storage_account" "storage" {
-  count = var.enabled ? 1 : 0
-  # depends_on                        = [azurerm_role_assignment.identity_assigned]
+  count                             = var.enabled ? 1 : 0
   name                              = var.storage_account_name
   resource_group_name               = var.resource_group_name
   location                          = var.location
@@ -295,7 +294,7 @@ resource "azurerm_storage_account_network_rules" "network-rules" {
 ## Below resource will create threat protection for storage account. 
 ##-----------------------------------------------------------------------------
 resource "azurerm_advanced_threat_protection" "atp" {
-  count              = var.enabled ? 1 : 0
+  count              = var.enabled && var.enable_advanced_threat_protection ? 1 : 0
   target_resource_id = join("", azurerm_storage_account.storage.*.id)
   enabled            = var.enable_advanced_threat_protection
 }
@@ -305,7 +304,7 @@ resource "azurerm_advanced_threat_protection" "atp" {
 ## This resource is not required when key vault has role based authorization(rbac) enabled.  
 ##-----------------------------------------------------------------------------
 resource "azurerm_key_vault_access_policy" "keyvault-access-policy" {
-  count        = var.enabled && var.key_vault_rbac_auth_enabled == false ? length(var.object_id) : 0
+  count        = var.enabled && var.key_vault_rbac_auth_enabled == false ? 1 : 0
   key_vault_id = var.key_vault_id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = join("", azurerm_user_assigned_identity.identity.*.principal_id)
@@ -345,7 +344,7 @@ resource "azurerm_key_vault_access_policy" "keyvault-access-policy" {
 ## Below resource will create container in storage account.
 ##-----------------------------------------------------------------------------
 resource "azurerm_storage_container" "container" {
-  count                 = length(var.containers_list)
+  count                 = var.enabled ? length(var.containers_list) : 0
   name                  = var.containers_list[count.index].name
   storage_account_name  = azurerm_storage_account.storage[0].name
   container_access_type = var.containers_list[count.index].access_type
@@ -355,7 +354,7 @@ resource "azurerm_storage_container" "container" {
 ## Below resource will create file share in storage account.  
 ##-----------------------------------------------------------------------------
 resource "azurerm_storage_share" "fileshare" {
-  count                = length(var.file_shares)
+  count                = var.enabled ? length(var.file_shares) : 0
   name                 = var.file_shares[count.index].name
   storage_account_name = azurerm_storage_account.storage[0].name
   quota                = var.file_shares[count.index].quota
@@ -365,7 +364,7 @@ resource "azurerm_storage_share" "fileshare" {
 ## Below resource will create tables in storage account.  
 ##-----------------------------------------------------------------------------
 resource "azurerm_storage_table" "tables" {
-  count                = length(var.tables)
+  count                = var.enabled ? length(var.tables) : 0
   name                 = var.tables[count.index]
   storage_account_name = join("", azurerm_storage_account.storage.*.name)
 }
@@ -374,7 +373,7 @@ resource "azurerm_storage_table" "tables" {
 ## Below resource will create queue in storage account.  
 ##-----------------------------------------------------------------------------
 resource "azurerm_storage_queue" "queues" {
-  count                = length(var.queues)
+  count                = var.enabled ? length(var.queues) : 0
   name                 = var.queues[count.index]
   storage_account_name = join("", azurerm_storage_account.storage.*.name)
 }
@@ -509,7 +508,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vent-link-1" {
 ##-----------------------------------------------------------------------------
 resource "azurerm_private_dns_zone_virtual_network_link" "vent-link-diff-subs" {
   provider              = azurerm.peer
-  count                 = var.multi_sub_vnet_link && var.existing_private_dns_zone != null ? 1 : 0
+  count                 = var.enabled && var.multi_sub_vnet_link && var.existing_private_dns_zone != null ? 1 : 0
   name                  = format("%s-pdz-vnet-link-storage-1", module.labels.id)
   resource_group_name   = var.existing_private_dns_zone_resource_group_name
   private_dns_zone_name = var.existing_private_dns_zone

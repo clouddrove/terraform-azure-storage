@@ -67,7 +67,7 @@ variable "access_tier" {
 
 variable "account_replication_type" {
   type        = string
-  default     = "GRS"
+  default     = "LRS"
   description = "Defines the type of replication to use for this storage account. Valid options are LRS, GRS, RAGRS, ZRS, GZRS and RAGZRS. Changing this forces a new resource to be created when types LRS, GRS and RAGRS are changed to ZRS, GZRS or RAGZRS and vice versa."
 }
 
@@ -336,11 +336,6 @@ variable "allow_nested_items_to_be_public" {
   type        = bool
   default     = false
   description = "Allow or disallow nested items within this Account to opt into being public. Defaults to true."
-}
-
-variable "object_id" {
-  type    = list(string)
-  default = []
 }
 
 variable "allowed_copy_scope" {
