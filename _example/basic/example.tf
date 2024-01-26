@@ -16,27 +16,28 @@ module "storage" {
   source                        = "../.."
   name                          = local.name
   environment                   = local.environment
-  default_enabled               = true
-  resource_group_name           = "app-test-rg"
+  label_order                   = local.label_order
+  resource_group_name           = "test-rg"
   location                      = "Central India"
-  storage_account_name          = "stordtyrey36"
-  public_network_access_enabled = false
+  storage_account_name          = "storage7386"
+  public_network_access_enabled = true
+  account_kind                  = "StorageV2"
+  account_tier                  = "Standard"
+  account_replication_type      = "GRS"
+
+  ## Encryption is not enabled for this Storage account
+  cmk_encryption_enabled = false
+
   ##   Storage Container
   containers_list = [
     { name = "app-test", access_type = "private" },
-    { name = "app2", access_type = "private" },
   ]
-  ##   Storage File Share
-  file_shares = [
-    { name = "fileshare1", quota = 5 },
-  ]
-  ##   Storage Tables
   tables = ["table1"]
-  ## Storage Queues
   queues = ["queue1"]
+  file_shares = [
+    { name = "fileshare", quota = "10" },
+  ]
 
-  management_policy_enable = true
-  #enable private endpoint
   virtual_network_id         = "/subscriptions/--------------<vnet_id>---------------"
   subnet_id                  = "/subscriptions/--------------<subnet_id>---------------"
   log_analytics_workspace_id = "/subscriptions/--------------<log_analytics_workspace_id>---------------"
