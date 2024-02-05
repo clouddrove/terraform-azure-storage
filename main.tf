@@ -194,7 +194,7 @@ resource "azurerm_storage_account" "storage" {
     for_each = var.cmk_encryption_enabled && var.identity_type != null ? [1] : []
     content {
       type         = var.identity_type
-      identity_ids = var.identity_type == "UserAssigned" ? [join("", azurerm_user_assigned_identity.identity.*.id)] : null
+      identity_ids = var.identity_type == "UserAssigned" ? [join("", azurerm_user_assigned_identity.identity[*].id)] : null
     }
   }
   dynamic "customer_managed_key" {
@@ -277,7 +277,7 @@ resource "azurerm_key_vault_key" "kvkey" {
 ##-----------------------------------------------------------------------------
 resource "azurerm_storage_account_network_rules" "network-rules" {
   for_each                   = var.enabled ? { for rule in var.network_rules : rule.default_action => rule } : {}
-  storage_account_id         = join("", azurerm_storage_account.storage.*.id)
+  storage_account_id         = join("", azurerm_storage_account.storage[*].id)
   default_action             = lookup(each.value, "default_action", "Deny")
   ip_rules                   = lookup(each.value, "ip_rules", null)
   virtual_network_subnet_ids = lookup(each.value, "virtual_network_subnet_ids", null)
@@ -296,7 +296,7 @@ resource "azurerm_storage_account_network_rules" "network-rules" {
 ##-----------------------------------------------------------------------------
 resource "azurerm_advanced_threat_protection" "atp" {
   count              = var.enabled && var.enable_advanced_threat_protection ? 1 : 0
-  target_resource_id = join("", azurerm_storage_account.storage.*.id)
+  target_resource_id = join("", azurerm_storage_account.storage[*].id)
   enabled            = var.enable_advanced_threat_protection
 }
 
@@ -308,7 +308,7 @@ resource "azurerm_key_vault_access_policy" "keyvault-access-policy" {
   count        = var.enabled && var.key_vault_rbac_auth_enabled == false ? 1 : 0
   key_vault_id = var.key_vault_id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = join("", azurerm_user_assigned_identity.identity.*.principal_id)
+  object_id    = join("", azurerm_user_assigned_identity.identity[*].principal_id)
 
   key_permissions = [
     "Create",
@@ -367,7 +367,7 @@ resource "azurerm_storage_share" "fileshare" {
 resource "azurerm_storage_table" "tables" {
   count                = var.enabled ? length(var.tables) : 0
   name                 = var.tables[count.index]
-  storage_account_name = join("", azurerm_storage_account.storage.*.name)
+  storage_account_name = join("", azurerm_storage_account.storage[*].name)
 }
 
 ##----------------------------------------------------------------------------- 
@@ -376,7 +376,7 @@ resource "azurerm_storage_table" "tables" {
 resource "azurerm_storage_queue" "queues" {
   count                = var.enabled ? length(var.queues) : 0
   name                 = var.queues[count.index]
-  storage_account_name = join("", azurerm_storage_account.storage.*.name)
+  storage_account_name = join("", azurerm_storage_account.storage[*].name)
 }
 
 ##----------------------------------------------------------------------------- 
@@ -384,7 +384,7 @@ resource "azurerm_storage_queue" "queues" {
 ##-----------------------------------------------------------------------------
 resource "azurerm_storage_management_policy" "lifecycle_management" {
   count              = var.enabled && var.management_policy_enable ? length(var.management_policy) : 0
-  storage_account_id = join("", azurerm_storage_account.storage.*.id)
+  storage_account_id = join("", azurerm_storage_account.storage[*].id)
 
   dynamic "rule" {
     for_each = var.management_policy
@@ -433,7 +433,7 @@ resource "azurerm_private_endpoint" "pep" {
   private_service_connection {
     name                           = format("%s-%s-psc", module.labels.id, var.storage_account_name)
     is_manual_connection           = false
-    private_connection_resource_id = join("", azurerm_storage_account.storage.*.id)
+    private_connection_resource_id = join("", azurerm_storage_account.storage[*].id)
     subresource_names              = ["blob"]
   }
   lifecycle {
