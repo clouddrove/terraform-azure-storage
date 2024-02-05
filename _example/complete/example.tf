@@ -50,7 +50,7 @@ module "subnet" {
   label_order          = local.label_order
   resource_group_name  = module.resource_group.resource_group_name
   location             = module.resource_group.resource_group_location
-  virtual_network_name = join("", module.vnet.vnet_name)
+  virtual_network_name = module.vnet.vnet_name
   service_endpoints    = ["Microsoft.Storage"]
   #subnet
   subnet_names    = ["subnet1"]
@@ -89,7 +89,7 @@ module "vault" {
   resource_group_name         = module.resource_group.resource_group_name
   location                    = module.resource_group.resource_group_location
   admin_objects_ids           = [data.azurerm_client_config.current_client_config.object_id]
-  virtual_network_id          = join("", module.vnet.vnet_id)
+  virtual_network_id          = module.vnet.vnet_id
   subnet_id                   = module.subnet.default_subnet_id[0]
   enable_rbac_authorization   = true
   enabled_for_disk_encryption = false
@@ -142,7 +142,7 @@ module "storage" {
     { name = "fileshare", quota = "10" },
   ]
 
-  virtual_network_id         = module.vnet.vnet_id[0]
+  virtual_network_id         = module.vnet.vnet_id
   subnet_id                  = module.subnet.default_subnet_id[0]
   log_analytics_workspace_id = module.log-analytics.workspace_id
 }
