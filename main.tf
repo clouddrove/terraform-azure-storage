@@ -541,7 +541,7 @@ resource "azurerm_private_dns_a_record" "arecord" {
   zone_name           = local.private_dns_zone_name
   resource_group_name = local.valid_rg_name
   ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.private-ip-0.0.private_service_connection.0.private_ip_address]
+  records             = [data.azurerm_private_endpoint_connection.private-ip-0[0].private_service_connection[0].private_ip_address]
   tags                = module.labels.tags
   lifecycle {
     ignore_changes = [
