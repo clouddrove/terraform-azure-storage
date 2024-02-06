@@ -194,7 +194,7 @@ resource "azurerm_storage_account" "storage" {
     for_each = var.cmk_encryption_enabled && var.identity_type != null ? [1] : []
     content {
       type         = var.identity_type
-      identity_ids = var.identity_type == "UserAssigned" ? [join("", azurerm_user_assigned_identity.identity[*].id)] : null
+      identity_ids = var.identity_type == "UserAssigned" ?  azurerm_user_assigned_identity.identity[*].id : null
     }
   }
   dynamic "customer_managed_key" {
@@ -279,7 +279,7 @@ resource "azurerm_key_vault_key" "kvkey" {
 ##-----------------------------------------------------------------------------
 resource "azurerm_storage_account_network_rules" "network-rules" {
   for_each                   = var.enabled ? { for rule in var.network_rules : rule.default_action => rule } : {}
-  storage_account_id         = join("", azurerm_storage_account.storage[*].id)
+  storage_account_id         = azurerm_storage_account.storage[0].id
   default_action             = lookup(each.value, "default_action", "Deny")
   ip_rules                   = lookup(each.value, "ip_rules", null)
   virtual_network_subnet_ids = lookup(each.value, "virtual_network_subnet_ids", null)
@@ -310,7 +310,7 @@ resource "azurerm_key_vault_access_policy" "keyvault-access-policy" {
   count        = var.enabled && var.key_vault_rbac_auth_enabled == false ? 1 : 0
   key_vault_id = var.key_vault_id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = join("", azurerm_user_assigned_identity.identity[*].principal_id)
+  object_id    = azurerm_user_assigned_identity.identity[*].principal_id
 
   key_permissions = [
     "Create",
@@ -369,7 +369,7 @@ resource "azurerm_storage_share" "fileshare" {
 resource "azurerm_storage_table" "tables" {
   count                = var.enabled ? length(var.tables) : 0
   name                 = var.tables[count.index]
-  storage_account_name = join("", azurerm_storage_account.storage[*].name)
+  storage_account_name = azurerm_storage_account.storage[0].name
 }
 
 ##----------------------------------------------------------------------------- 
@@ -452,7 +452,7 @@ locals {
   resource_group_name   = var.resource_group_name
   location              = var.location
   valid_rg_name         = var.existing_private_dns_zone == null ? local.resource_group_name : (var.existing_private_dns_zone_resource_group_name == "" ? local.resource_group_name : var.existing_private_dns_zone_resource_group_name)
-  private_dns_zone_name = var.existing_private_dns_zone == null ? join("", azurerm_private_dns_zone.dnszone[*].name) : var.existing_private_dns_zone
+  private_dns_zone_name = var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone[*].name : var.existing_private_dns_zone
 }
 
 ##----------------------------------------------------------------------------- 
@@ -527,7 +527,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "addon_vent_link" {
   count                 = var.enabled && var.addon_vent_link ? 1 : 0
   name                  = format("%s-pdz-vnet-link-storage-addon", module.labels.id)
   resource_group_name   = var.addon_resource_group_name
-  private_dns_zone_name = var.existing_private_dns_zone == null ? join("", azurerm_private_dns_zone.dnszone[*].name) : var.existing_private_dns_zone
+  private_dns_zone_name = var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone[*].name : var.existing_private_dns_zone
   virtual_network_id    = var.addon_virtual_network_id
   tags                  = module.labels.tags
 }
@@ -537,7 +537,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "addon_vent_link" {
 ##-----------------------------------------------------------------------------
 resource "azurerm_private_dns_a_record" "arecord" {
   count               = var.enabled && var.enable_private_endpoint && var.diff_sub == false ? 1 : 0
-  name                = var.key_vault_id != null ? azurerm_storage_account.storage[*].name : null
+  name                = var.key_vault_id != null ? azurerm_storage_account.storage[0].name : null
   zone_name           = local.private_dns_zone_name
   resource_group_name = local.valid_rg_name
   ttl                 = 3600
