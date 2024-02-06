@@ -215,6 +215,7 @@ resource "azurerm_user_assigned_identity" "identity" {
   location            = var.location
   name                = format("%s-storage-mid", module.labels.id)
   resource_group_name = var.resource_group_name
+  tags                = module.labels.tags
 }
 
 ##----------------------------------------------------------------------------- 
@@ -251,6 +252,7 @@ resource "azurerm_key_vault_key" "kvkey" {
   key_vault_id    = var.key_vault_id
   key_type        = "RSA"
   key_size        = 2048
+  tags            = module.labels.tags
   key_opts = [
     "decrypt",
     "encrypt",
@@ -539,7 +541,7 @@ resource "azurerm_private_dns_a_record" "arecord" {
   zone_name           = local.private_dns_zone_name
   resource_group_name = local.valid_rg_name
   ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.private-ip-0[0].private_service_connection.0.private_ip_address]
+  records             = [data.azurerm_private_endpoint_connection.private-ip-0.0.private_service_connection.0.private_ip_address]
   tags                = module.labels.tags
   lifecycle {
     ignore_changes = [
@@ -559,7 +561,7 @@ resource "azurerm_private_dns_a_record" "arecord1" {
   zone_name           = local.private_dns_zone_name
   resource_group_name = local.valid_rg_name
   ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.private-ip-0.0.private_service_connection.0.private_ip_address]
+  records             = [data.azurerm_private_endpoint_connection.private-ip-0[0].private_service_connection[0].private_ip_address]
   tags                = module.labels.tags
   lifecycle {
     ignore_changes = [
@@ -621,7 +623,7 @@ resource "azurerm_monitor_diagnostic_setting" "storage-nic" {
   depends_on                     = [azurerm_private_endpoint.pep]
   count                          = var.enabled && var.enable_diagnostic && var.enable_private_endpoint ? 1 : 0
   name                           = format("%s-storage-nic-diagnostic-log", module.labels.id)
-  target_resource_id             = element(azurerm_private_endpoint.pep[count.index].network_interface.*.id, count.index)
+  target_resource_id             = element(azurerm_private_endpoint.pep[count.index].network_interface[*].id, count.index)
   storage_account_id             = var.storage_account_id
   eventhub_name                  = var.eventhub_name
   eventhub_authorization_rule_id = var.eventhub_authorization_rule_id
