@@ -194,7 +194,7 @@ resource "azurerm_storage_account" "storage" {
     for_each = var.cmk_encryption_enabled && var.identity_type != null ? [1] : []
     content {
       type         = var.identity_type
-      identity_ids = var.identity_type == "UserAssigned" ?  azurerm_user_assigned_identity.identity[*].id : null
+      identity_ids = var.identity_type == "UserAssigned" ? azurerm_user_assigned_identity.identity[*].id : null
     }
   }
   dynamic "customer_managed_key" {

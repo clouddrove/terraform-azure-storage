@@ -24,12 +24,12 @@ output "storage_account_primary_blob_endpoint" {
 }
 
 output "storage_account_primary_web_host" {
-  value       =  azurerm_storage_account.storage[*].primary_web_host
+  value       = azurerm_storage_account.storage[*].primary_web_host
   description = "The hostname with port if applicable for web storage in the primary location."
 }
 
 output "storage_primary_connection_string" {
-  value       =  azurerm_storage_account.storage[*].primary_connection_string
+  value       = azurerm_storage_account.storage[*].primary_connection_string
   sensitive   = true
   description = "The primary connection string for the storage account"
 }
