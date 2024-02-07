@@ -30,6 +30,12 @@ variable "managedby" {
   description = "ManagedBy, eg 'Identos'."
 }
 
+variable "extra_tags" {
+  type        = map(string)
+  default     = null
+  description = "Variable to pass extra tags."
+}
+
 variable "enabled" {
   type        = bool
   description = "Set to false to prevent the module from creating any resources."
@@ -61,6 +67,7 @@ variable "account_tier" {
 }
 
 variable "access_tier" {
+  type        = string
   default     = "Hot"
   description = "Defines the access tier for BlobStorage and StorageV2 accounts. Valid options are Hot and Cool."
 }
@@ -89,11 +96,6 @@ variable "min_tls_version" {
   description = "The minimum supported TLS version for the storage account"
 }
 
-variable "soft_delete_retention" {
-  type        = number
-  default     = 30
-  description = "Number of retention days for soft delete. If set to null it will disable soft delete all together."
-}
 
 variable "containers_list" {
   type        = list(object({ name = string, access_type = string }))
@@ -102,16 +104,19 @@ variable "containers_list" {
 }
 
 variable "network_rules" {
+  type        = map(string)
   default     = {}
   description = "List of objects that represent the configuration of each network rules."
 }
 
 variable "table_encryption_key_type" {
+  type        = string
   default     = "Account"
   description = "The encryption type of the table service. Possible values are 'Service' and 'Account'."
 }
 
 variable "queue_encryption_key_type" {
+  type        = string
   default     = "Account"
   description = "The encryption type of the queue service. Possible values are 'Service' and 'Account'."
 }
@@ -584,18 +589,6 @@ variable "log_analytics_workspace_id" {
   description = "log analytics workspace id to pass it to destination details of diagnosys setting of NSG."
 }
 
-variable "retention_policy_enabled" {
-  type        = bool
-  default     = false
-  description = "Set to false to prevent the module from creating retension policy for the diagnosys setting."
-}
-
-variable "days" {
-  type        = number
-  default     = 365
-  description = "Number of days to create retension policies for te diagnosys setting."
-}
-
 variable "metrics" {
   type    = list(string)
   default = ["Transaction", "Capacity"]
@@ -641,11 +634,6 @@ variable "Metric_enable" {
   type        = bool
   default     = true
   description = "Is this Diagnostic Metric enabled? Defaults to true."
-}
-variable "diagnostic_log_days" {
-  type        = number
-  default     = "90"
-  description = " The number of days for which this Retention Policy should apply."
 }
 
 variable "multi_sub_vnet_link" {
