@@ -452,7 +452,7 @@ locals {
   resource_group_name   = var.resource_group_name
   location              = var.location
   valid_rg_name         = var.existing_private_dns_zone == null ? local.resource_group_name : (var.existing_private_dns_zone_resource_group_name == "" ? local.resource_group_name : var.existing_private_dns_zone_resource_group_name)
-  private_dns_zone_name = var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone[*].name : var.existing_private_dns_zone
+  private_dns_zone_name = var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone[0].name : var.existing_private_dns_zone
 }
 
 ##----------------------------------------------------------------------------- 
@@ -527,7 +527,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "addon_vent_link" {
   count                 = var.enabled && var.addon_vent_link ? 1 : 0
   name                  = format("%s-pdz-vnet-link-storage-addon", module.labels.id)
   resource_group_name   = var.addon_resource_group_name
-  private_dns_zone_name = var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone[*].name : var.existing_private_dns_zone
+  private_dns_zone_name = var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone[0].name : var.existing_private_dns_zone
   virtual_network_id    = var.addon_virtual_network_id
   tags                  = module.labels.tags
 }
