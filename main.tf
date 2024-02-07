@@ -310,7 +310,7 @@ resource "azurerm_key_vault_access_policy" "keyvault-access-policy" {
   count        = var.enabled && var.key_vault_rbac_auth_enabled == false ? 1 : 0
   key_vault_id = var.key_vault_id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_user_assigned_identity.identity[*].principal_id
+  object_id    = azurerm_user_assigned_identity.identity[0].principal_id
 
   key_permissions = [
     "Create",
