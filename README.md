@@ -163,9 +163,7 @@ Here is an example of how you can use this module in your inventory structure:
 | cross\_tenant\_replication\_enabled | Should cross Tenant replication be enabled? Defaults to true. | `bool` | `true` | no |
 | custom\_domain\_name | The Custom Domain Name to use for the Storage Account, which will be validated by Azure. | `string` | `null` | no |
 | datastorages | n/a | `list(string)` | <pre>[<br>  "blob",<br>  "queue",<br>  "table",<br>  "file"<br>]</pre> | no |
-| days | Number of days to create retension policies for te diagnosys setting. | `number` | `365` | no |
 | default\_to\_oauth\_authentication | Default to Azure Active Directory authorization in the Azure portal when accessing the Storage Account. The default value is false | `bool` | `false` | no |
-| diagnostic\_log\_days | The number of days for which this Retention Policy should apply. | `number` | `"90"` | no |
 | diff\_sub | The name of the addon vnet | `bool` | `false` | no |
 | edge\_zone | Specifies the Edge Zone within the Azure Region where this Storage Account should exist. | `string` | `null` | no |
 | enable\_advanced\_threat\_protection | Boolean flag which controls if advanced threat protection is enabled. | `bool` | `true` | no |
@@ -185,6 +183,7 @@ Here is an example of how you can use this module in your inventory structure:
 | existing\_private\_dns\_zone | Name of the existing private DNS zone | `string` | `null` | no |
 | existing\_private\_dns\_zone\_resource\_group\_name | The name of the existing resource group | `string` | `null` | no |
 | expiration\_date | Expiration UTC datetime (Y-m-d'T'H:M:S'Z') | `string` | `"2024-05-22T18:29:59Z"` | no |
+| extra\_tags | Variable to pass extra tags. | `map(string)` | `null` | no |
 | file\_share\_authentication | Storage Account file shares authentication configuration. | <pre>object({<br>    directory_type = string<br>    active_directory = optional(object({<br>      storage_sid         = string<br>      domain_name         = string<br>      domain_sid          = string<br>      domain_guid         = string<br>      forest_name         = string<br>      netbios_domain_name = string<br>    }))<br>  })</pre> | `null` | no |
 | file\_share\_cors\_rules | Storage Account file shares CORS rule. Please refer to the [documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account#cors_rule) for more information. | <pre>list(object({<br>    allowed_headers    = list(string)<br>    allowed_methods    = list(string)<br>    allowed_origins    = list(string)<br>    exposed_headers    = list(string)<br>    max_age_in_seconds = number<br>  }))</pre> | `null` | no |
 | file\_share\_properties\_smb | Storage Account file shares smb properties. | <pre>object({<br>    versions                        = optional(list(string))<br>    authentication_types            = optional(list(string))<br>    kerberos_ticket_encryption_type = optional(list(string))<br>    channel_encryption_type         = optional(list(string))<br>    multichannel_enabled            = optional(bool)<br>  })</pre> | `null` | no |
@@ -211,7 +210,7 @@ Here is an example of how you can use this module in your inventory structure:
 | minute\_metrics | n/a | <pre>list(object({<br>    enabled               = bool<br>    version               = string<br>    include_apis          = bool<br>    retention_policy_days = number<br>  }))</pre> | <pre>[<br>  {<br>    "enabled": false,<br>    "include_apis": false,<br>    "retention_policy_days": 7,<br>    "version": ""<br>  }<br>]</pre> | no |
 | multi\_sub\_vnet\_link | Flag to control creation of vnet link for dns zone in different subscription | `bool` | `false` | no |
 | name | Name  (e.g. `app` or `cluster`). | `string` | `""` | no |
-| network\_rules | List of objects that represent the configuration of each network rules. | `map` | `{}` | no |
+| network\_rules | List of objects that represent the configuration of each network rules. | `map(string)` | `{}` | no |
 | nfsv3\_enabled | Is NFSv3 protocol enabled? Changing this forces a new resource to be created. | `bool` | `false` | no |
 | private\_link\_access | List of Privatelink objects to allow access from. | <pre>list(object({<br>    endpoint_resource_id = string<br>    endpoint_tenant_id   = string<br>  }))</pre> | `[]` | no |
 | public\_network\_access\_enabled | Whether the public network access is enabled? Defaults to true. | `bool` | `true` | no |
@@ -221,14 +220,12 @@ Here is an example of how you can use this module in your inventory structure:
 | repository | Terraform current module repo | `string` | `"https://github.com/clouddrove/terraform-azure-storage.git"` | no |
 | resource\_group\_name | A container that holds related resources for an Azure solution | `string` | `""` | no |
 | restore\_policy | Wheteher or not create restore policy | `bool` | `false` | no |
-| retention\_policy\_enabled | Set to false to prevent the module from creating retension policy for the diagnosys setting. | `bool` | `false` | no |
 | rotation\_policy | n/a | <pre>map(object({<br>    time_before_expiry   = string<br>    expire_after         = string<br>    notify_before_expiry = string<br>  }))</pre> | `null` | no |
 | rotation\_policy\_enabled | Whether or not to enable rotation policy | `bool` | `false` | no |
 | routing | n/a | <pre>list(object({<br>    publish_internet_endpoints  = bool<br>    publish_microsoft_endpoints = bool<br>    choice                      = string<br>  }))</pre> | <pre>[<br>  {<br>    "choice": "MicrosoftRouting",<br>    "publish_internet_endpoints": false,<br>    "publish_microsoft_endpoints": false<br>  }<br>]</pre> | no |
 | sas\_policy\_settings | n/a | <pre>list(object({<br>    expiration_period = string<br>    expiration_action = string<br>  }))</pre> | <pre>[<br>  {<br>    "expiration_action": "Log",<br>    "expiration_period": "7.00:00:00"<br>  }<br>]</pre> | no |
 | sftp\_enabled | Boolean, enable SFTP for the storage account | `bool` | `false` | no |
 | shared\_access\_key\_enabled | Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key. If false, then all requests, including shared access signatures, must be authorized with Azure Active Directory (Azure AD). The default value is true. | `bool` | `true` | no |
-| soft\_delete\_retention | Number of retention days for soft delete. If set to null it will disable soft delete all together. | `number` | `30` | no |
 | static\_website\_config | Static website configuration. Can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`. | <pre>object({<br>    index_document     = optional(string)<br>    error_404_document = optional(string)<br>  })</pre> | `null` | no |
 | storage\_account\_id | Storage account id to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
 | storage\_account\_name | The name of the azure storage account | `string` | `""` | no |
