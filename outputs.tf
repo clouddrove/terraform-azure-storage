@@ -1,41 +1,41 @@
 output "storage_account_id" {
-  value       = azurerm_storage_account.storage[0].id
+  value       = try(azurerm_storage_account.storage[0].id, null)
   description = "The ID of the storage account."
 }
 
 output "storage_account_name" {
-  value       = azurerm_storage_account.storage[0].name
+  value       = try(azurerm_storage_account.storage[0].name, null)
   description = "The name of the storage account."
 }
 
 output "storage_account_primary_location" {
-  value       = azurerm_storage_account.storage[0].primary_location
+  value       = try(azurerm_storage_account.storage[0].primary_location, null)
   description = "The primary location of the storage account"
 }
 
 output "storage_account_primary_web_endpoint" {
-  value       = azurerm_storage_account.storage[0].primary_web_endpoint
+  value       = try(azurerm_storage_account.storage[0].primary_web_endpoint, null)
   description = "The endpoint URL for web storage in the primary location."
 }
 
 output "storage_account_primary_blob_endpoint" {
-  value       = azurerm_storage_account.storage[0].primary_blob_endpoint
+  value       = try(azurerm_storage_account.storage[0].primary_blob_endpoint, null)
   description = "The endpoint URL for blob storage in the primary location."
 }
 
 output "storage_account_primary_web_host" {
-  value       = azurerm_storage_account.storage[0].primary_web_host
+  value       = try(azurerm_storage_account.storage[0].primary_web_host, null)
   description = "The hostname with port if applicable for web storage in the primary location."
 }
 
 output "storage_primary_connection_string" {
-  value       = azurerm_storage_account.storage[0].primary_connection_string
+  value       = try(azurerm_storage_account.storage[0].primary_connection_string, null)
   sensitive   = true
   description = "The primary connection string for the storage account"
 }
 
 output "storage_primary_access_key" {
-  value       = azurerm_storage_account.storage[0].primary_access_key
+  value       = try(azurerm_storage_account.storage[0].primary_access_key, null)
   sensitive   = true
   description = "The primary access key for the storage account"
 }

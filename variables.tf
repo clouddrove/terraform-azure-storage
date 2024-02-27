@@ -370,7 +370,7 @@ variable "subnet_id" {
 
 variable "enable_private_endpoint" {
   type        = bool
-  default     = false
+  default     = true
   description = "enable or disable private endpoint to storage account"
 }
 

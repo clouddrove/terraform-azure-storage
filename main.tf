@@ -452,7 +452,7 @@ locals {
   resource_group_name   = var.resource_group_name
   location              = var.location
   valid_rg_name         = var.existing_private_dns_zone == null ? local.resource_group_name : (var.existing_private_dns_zone_resource_group_name == "" ? local.resource_group_name : var.existing_private_dns_zone_resource_group_name)
-  private_dns_zone_name = var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone[0].name : var.existing_private_dns_zone
+  private_dns_zone_name = var.enable_private_endpoint && var.enabled ? var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone[0].name : var.existing_private_dns_zone : null
 }
 
 ##----------------------------------------------------------------------------- 
