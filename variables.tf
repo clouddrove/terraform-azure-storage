@@ -308,7 +308,7 @@ variable "key_vault_id" {
 
 variable "expiration_date" {
   type        = string
-  default     = "2024-05-22T18:29:59Z"
+  default     = null
   description = "Expiration UTC datetime (Y-m-d'T'H:M:S'Z')"
 }
 

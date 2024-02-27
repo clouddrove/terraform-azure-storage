@@ -83,7 +83,7 @@ module "vault" {
   source  = "clouddrove/key-vault/azure"
   version = "1.1.0"
 
-  name                        = "vault6596058"
+  name                        = "vae596058"
   environment                 = "test"
   label_order                 = ["name", "environment", ]
   resource_group_name         = module.resource_group.resource_group_name
