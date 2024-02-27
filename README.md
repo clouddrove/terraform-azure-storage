@@ -172,7 +172,7 @@ Here is an example of how you can use this module in your inventory structure:
 | enable\_hour\_metrics | Enable or disable the creation of the hour\_metrics block. | `bool` | `false` | no |
 | enable\_https\_traffic\_only | Boolean flag which forces HTTPS if enabled, see here for more information. | `bool` | `true` | no |
 | enable\_minute\_metrics | Enable or disable the creation of the minute\_metrics block. | `bool` | `false` | no |
-| enable\_private\_endpoint | enable or disable private endpoint to storage account | `bool` | `false` | no |
+| enable\_private\_endpoint | enable or disable private endpoint to storage account | `bool` | `true` | no |
 | enable\_private\_link\_access | Enable or disable the creation of the private\_link\_access. | `bool` | `false` | no |
 | enable\_routing | Enable or disable the creation of the routing block. | `bool` | `false` | no |
 | enable\_sas\_policy | Enable or disable the creation of the sas\_policy block. | `bool` | `false` | no |
