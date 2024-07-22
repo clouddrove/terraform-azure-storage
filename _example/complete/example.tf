@@ -44,7 +44,7 @@ module "vnet" {
 ##-----------------------------------------------------------------------------
 module "subnet" {
   source               = "clouddrove/subnet/azure"
-  version              = "1.1.0"
+  version              = "1.2.0"
   name                 = local.name
   environment          = local.environment
   label_order          = local.label_order
