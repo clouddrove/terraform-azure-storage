@@ -15,6 +15,7 @@ locals {
 ##-----------------------------------------------------------------------------
 module "storage" {
   providers = {
+    azurerm.dns_sub  = azurerm.peer,
     azurerm.main_sub = azurerm
   }
   source                        = "../.."
