@@ -2,6 +2,7 @@ provider "azurerm" {
   features {}
 }
 
+
 locals {
   name        = "app"
   environment = "test"
@@ -13,6 +14,9 @@ locals {
 ## Here default storage will be deployed i.e. storage account without cmk encryption. 
 ##-----------------------------------------------------------------------------
 module "storage" {
+  providers = {
+    azurerm.main_sub = azurerm
+  }
   source                        = "../.."
   name                          = local.name
   environment                   = local.environment
