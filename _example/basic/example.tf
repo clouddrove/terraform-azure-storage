@@ -1,5 +1,15 @@
 provider "azurerm" {
   features {}
+  storage_use_azuread        = true
+  subscription_id            = "068245d4-3c94-42fe-9c4d-9e5e1cabc60c"
+  skip_provider_registration = "true"
+}
+
+provider "azurerm" {
+  features {}
+  alias                      = "peer"
+  subscription_id            = "068245d4-3c94-42fe-9c4d-9e5e1cabc60c"
+  skip_provider_registration = "true"
 }
 
 
