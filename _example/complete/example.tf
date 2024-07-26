@@ -1,7 +1,18 @@
+
 provider "azurerm" {
-  storage_use_azuread = true
   features {}
+  storage_use_azuread        = true
+  subscription_id            = "01111111111110-11-11-11-11"
+  skip_provider_registration = "true"
 }
+
+provider "azurerm" {
+  features {}
+  alias                      = "peer"
+  subscription_id            = "01111111111110-11-11-11-11"
+  skip_provider_registration = "true"
+}
+
 
 data "azurerm_client_config" "current_client_config" {}
 
@@ -44,7 +55,7 @@ module "vnet" {
 ##-----------------------------------------------------------------------------
 module "subnet" {
   source               = "clouddrove/subnet/azure"
-  version              = "1.1.0"
+  version              = "1.2.0"
   name                 = local.name
   environment          = local.environment
   label_order          = local.label_order
@@ -83,7 +94,7 @@ module "vault" {
   source  = "clouddrove/key-vault/azure"
   version = "1.1.0"
 
-  name                        = "vae596058"
+  name                        = "vae5960581"
   environment                 = "test"
   label_order                 = ["name", "environment", ]
   resource_group_name         = module.resource_group.resource_group_name
@@ -116,6 +127,11 @@ module "vault" {
 ## Here storage account will be deployed with CMK encryption. 
 ##-----------------------------------------------------------------------------
 module "storage" {
+  providers = {
+    azurerm.dns_sub  = azurerm.peer,
+    azurerm.main_sub = azurerm
+  }
+
   source                        = "../.."
   name                          = local.name
   environment                   = local.environment
@@ -131,6 +147,18 @@ module "storage" {
   ###customer_managed_key can only be set when the account_kind is set to StorageV2 or account_tier set to Premium, and the identity type is UserAssigned.
   cmk_encryption_enabled = true
   key_vault_id           = module.vault.id
+
+  ########Following to be uncommnented only when using DNS Zone from different subscription along with existing DNS zone.
+
+  # diff_sub = true
+  # alias                                         = ""
+  # alias_sub                                     = ""
+
+  #########Following to be uncommmented when using DNS zone from different resource group or different subscription.
+  # existing_private_dns_zone                     = "privatelink.blob.core.windows.net"
+  # existing_private_dns_zone_resource_group_name = "dns-rg"
+
+
 
   ##   Storage Container
   containers_list = [
