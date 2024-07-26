@@ -1,6 +1,17 @@
 provider "azurerm" {
   features {}
+  storage_use_azuread        = true
+  subscription_id            = "01111111111110-11-11-11-11"
+  skip_provider_registration = "true"
 }
+
+provider "azurerm" {
+  features {}
+  alias                      = "peer"
+  subscription_id            = "01111111111110-11-11-11-11"
+  skip_provider_registration = "true"
+}
+
 
 locals {
   name        = "app"
@@ -13,6 +24,10 @@ locals {
 ## Here default storage will be deployed i.e. storage account without cmk encryption. 
 ##-----------------------------------------------------------------------------
 module "storage" {
+  providers = {
+    azurerm.dns_sub  = azurerm.peer,
+    azurerm.main_sub = azurerm
+  }
   source                        = "../.."
   name                          = local.name
   environment                   = local.environment
