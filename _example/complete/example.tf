@@ -92,7 +92,7 @@ module "log-analytics" {
 ##-----------------------------------------------------------------------------
 module "vault" {
   source  = "clouddrove/key-vault/azure"
-  version = "1.1.0"
+  version = "1.2.0"
 
   name                        = "vae5960581"
   environment                 = "test"
