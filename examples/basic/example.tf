@@ -11,7 +11,7 @@ provider "azurerm" {
   subscription_id            = "01111111111110-11-11-11-11"
   skip_provider_registration = "true"
 }
-
+configuration_aliases = [azurerm.main_sub, azurerm.dns_sub]
 
 locals {
   name        = "app"
