@@ -1,13 +1,13 @@
 provider "azurerm" {
   features {}
   storage_use_azuread        = true
-  subscription_id            = "068245d4-3c94-42fe-9c4d-9e5e1cabc60c"
+  subscription_id            = "01111111111110-11-11-11-11"
 }
 
 provider "azurerm" {
   features {}
   alias                      = "peer"
-  subscription_id            = "068245d4-3c94-42fe-9c4d-9e5e1cabc60c"
+  subscription_id            = "01111111111110-11-11-11-11"
 }
 
 
@@ -51,7 +51,7 @@ module "storage" {
     { name = "fileshare", quota = "10" },
   ]
 
-  virtual_network_id         = "/subscriptions/068245d4-3c94-42fe-9c4d-9e5e1cabc60c/resourceGroups/vedant-rg/providers/Microsoft.Network/virtualNetworks/test"
-  subnet_id                  = "/subscriptions/068245d4-3c94-42fe-9c4d-9e5e1cabc60c/resourceGroups/vedant-rg/providers/Microsoft.Network/virtualNetworks/test/subnets/default"
-  log_analytics_workspace_id = "/subscriptions/{subscription_id}/resourcegroups/{resource_group}/providers/Microsoft.OperationalInsights/workspaces/testing-module}"
+  virtual_network_id         = "/subscriptions/--------------<vnet_id>---------------"
+  subnet_id                  = "/subscriptions/--------------<subnet_id>---------------"
+  log_analytics_workspace_id = "/subscriptions/--------------<log_analytics_workspace_id>---------------"
 }
