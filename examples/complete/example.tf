@@ -2,25 +2,32 @@
 provider "azurerm" {
   features {}
   storage_use_azuread        = true
-  subscription_id            = "01111111111110-11-11-11-11"
+  subscription_id            = "068245d4-3c94-42fe-9c4d-9e5e1cabc60c"
   skip_provider_registration = "true"
 }
 
-provider "azurerm" {
-  features {}
-  alias                      = "peer"
-  subscription_id            = "01111111111110-11-11-11-11"
-  skip_provider_registration = "true"
-}
+# provider "azurerm" {
+#   features {}
+#   alias                      = "dns_sub"
+#   subscription_id            = "068245d4-3c94-42fe-9c4d-9e5e1cabc60c"
+# }
+
+# provider "azurerm" {
+#   features {}
+#   alias                      = "peer"
+#   subscription_id            = "068245d4-3c94-42fe-9c4d-9e5e1cabc60c"
+# }
 
 
 data "azurerm_client_config" "current_client_config" {}
+
 
 locals {
   name        = "app-storage"
   environment = "test"
   label_order = ["name", "environment"]
 }
+
 
 ##----------------------------------------------------------------------------- 
 ## Resource Group module call
@@ -128,7 +135,7 @@ module "vault" {
 ##-----------------------------------------------------------------------------
 module "storage" {
   providers = {
-    azurerm.dns_sub  = azurerm.peer,
+    azurerm.dns_sub  = azurerm,
     azurerm.main_sub = azurerm
   }
 
