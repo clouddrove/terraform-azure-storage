@@ -2,7 +2,7 @@ provider "azurerm" {
   features {}
   storage_use_azuread        = true
   subscription_id            = "01111111111110-11-11-11-11"
-   skip_provider_registration = "true"
+  skip_provider_registration = "true"
 }
 
 provider "azurerm" {
