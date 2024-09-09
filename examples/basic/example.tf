@@ -1,13 +1,13 @@
 provider "azurerm" {
   features {}
-  storage_use_azuread        = true
-  subscription_id            = "01111111111110-11-11-11-11"
+  storage_use_azuread = true
+  subscription_id     = "01111111111110-11-11-11-11"
 }
 
 provider "azurerm" {
   features {}
-  alias                      = "peer"
-  subscription_id            = "01111111111110-11-11-11-11"
+  alias           = "peer"
+  subscription_id = "01111111111110-11-11-11-11"
 }
 
 locals {
