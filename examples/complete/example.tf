@@ -1,16 +1,14 @@
 
 provider "azurerm" {
   features {}
-  storage_use_azuread        = true
-  subscription_id            = "01111111111110-11-11-11-11"
-  skip_provider_registration = "true"
+  storage_use_azuread = true
+  subscription_id     = "01111111111110-11-11-11-11"
 }
 
 provider "azurerm" {
   features {}
-  alias                      = "peer"
-  subscription_id            = "01111111111110-11-11-11-11"
-  skip_provider_registration = "true"
+  alias           = "peer"
+  subscription_id = "01111111111110-11-11-11-11"
 }
 
 
@@ -74,7 +72,7 @@ module "subnet" {
 ##-----------------------------------------------------------------------------
 module "log-analytics" {
   source                           = "clouddrove/log-analytics/azure"
-  version                          = "1.0.1"
+  version                          = "1.1.0"
   name                             = local.name
   environment                      = local.environment
   label_order                      = local.label_order
