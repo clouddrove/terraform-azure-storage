@@ -76,23 +76,31 @@ module "log-analytics" {
   name                             = local.name
   environment                      = local.environment
   label_order                      = local.label_order
-  create_log_analytics_workspace   = false
+  create_log_analytics_workspace   = true # Set  it 'false' if you don't want resource log-analytics workspace to be created
   log_analytics_workspace_sku      = "PerGB2018"
   daily_quota_gb                   = "-1"
   internet_ingestion_enabled       = true
   internet_query_enabled           = true
   resource_group_name              = module.resource_group.resource_group_name
   log_analytics_workspace_location = module.resource_group.resource_group_location
+  storage_account_id               = module.storage.storage_account_id
+  diagnostic_setting_enable        = false # Set it 'true' if you want azurerm_monitor_diagnostic_setting to be enabled
+
 }
 
 ##----------------------------------------------------------------------------- 
 ## Key Vault module call.
 ##-----------------------------------------------------------------------------
 module "vault" {
+  providers = {
+    azurerm.main_sub = azurerm
+    azurerm.dns_sub  = azurerm.peer
+  }
+
   source  = "clouddrove/key-vault/azure"
   version = "1.1.0"
 
-  name                        = "vae5960581"
+  name                        = "vae59605811"
   environment                 = "test"
   label_order                 = ["name", "environment", ]
   resource_group_name         = module.resource_group.resource_group_name
