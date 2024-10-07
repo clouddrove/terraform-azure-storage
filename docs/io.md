@@ -109,4 +109,3 @@
 | storage\_primary\_access\_key | The primary access key for the storage account |
 | storage\_primary\_connection\_string | The primary connection string for the storage account |
 | tables | Map of Storage SMB file shares. |
-
