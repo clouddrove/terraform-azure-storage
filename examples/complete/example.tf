@@ -20,7 +20,7 @@ locals {
   label_order = ["name", "environment"]
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Resource Group module call
 ## Resource group in which all resources will be deployed.
 ##-----------------------------------------------------------------------------
@@ -33,7 +33,7 @@ module "resource_group" {
   location    = "North Europe"
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Virtual Network module call.
 ##-----------------------------------------------------------------------------
 module "vnet" {
@@ -47,7 +47,7 @@ module "vnet" {
   address_spaces      = ["10.0.0.0/16"]
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Subnet module call.
 ## Subnet in which storage account and its private endpoint will be created.
 ##-----------------------------------------------------------------------------
@@ -66,9 +66,9 @@ module "subnet" {
   subnet_prefixes = ["10.0.1.0/24"]
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Log Analytics module call.
-## Log analytics workspace in which storage diagnostic logs will be sent. 
+## Log analytics workspace in which storage diagnostic logs will be sent.
 ##-----------------------------------------------------------------------------
 module "log-analytics" {
   source                           = "clouddrove/log-analytics/azure"
@@ -85,7 +85,7 @@ module "log-analytics" {
   log_analytics_workspace_location = module.resource_group.resource_group_location
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Key Vault module call.
 ##-----------------------------------------------------------------------------
 module "vault" {
@@ -120,9 +120,9 @@ module "vault" {
   log_analytics_workspace_id = module.log-analytics.workspace_id ## when diagnostic_setting_enable enable,  add log analytics workspace id
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Storage module call.
-## Here storage account will be deployed with CMK encryption. 
+## Here storage account will be deployed with CMK encryption.
 ##-----------------------------------------------------------------------------
 module "storage" {
   providers = {

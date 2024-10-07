@@ -17,9 +17,9 @@ locals {
   label_order = ["name", "environment"]
 }
 
-##----------------------------------------------------------------------------- 
+##-----------------------------------------------------------------------------
 ## Storage module call.
-## Here default storage will be deployed i.e. storage account without cmk encryption. 
+## Here default storage will be deployed i.e. storage account without cmk encryption.
 ##-----------------------------------------------------------------------------
 module "storage" {
   providers = {
