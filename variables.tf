@@ -78,7 +78,7 @@ variable "account_replication_type" {
   description = "Defines the type of replication to use for this storage account. Valid options are LRS, GRS, RAGRS, ZRS, GZRS and RAGZRS. Changing this forces a new resource to be created when types LRS, GRS and RAGRS are changed to ZRS, GZRS or RAGZRS and vice versa."
 }
 
-variable "https_traffic_only_enabled" {
+variable "enable_https_traffic_only" {
   type        = bool
   default     = true
   description = " Boolean flag which forces HTTPS if enabled, see here for more information."
