@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2024-10-15
+### :bug: Bug Fixes
+- [`1001fd9`](https://github.com/clouddrove/terraform-azure-storage/commit/1001fd9f47d34d132c46aa1a5ace2734290f6c32) - renamed _examples to examples and referenced it *(PR [#64](https://github.com/clouddrove/terraform-azure-storage/pull/64) by [@vjdbj](https://github.com/vjdbj))*
+- [`b30a448`](https://github.com/clouddrove/terraform-azure-storage/commit/b30a44844c12db433781b4490ee1e7b5efe0a857) - Update https_traffic_only_enabled to enable_https_traffic_only *(PR [#74](https://github.com/clouddrove/terraform-azure-storage/pull/74) by [@ravimalvia10](https://github.com/ravimalvia10))*
+
+### :construction_worker: Build System
+- [`5fc506e`](https://github.com/clouddrove/terraform-azure-storage/commit/5fc506e7ac1f659649df9e5fa63d349427e2a860) - **deps**: bump clouddrove/github-shared-workflows from 1.2.4 to 1.2.8 *(commit by [@dependabot[bot]](https://github.com/apps/dependabot))*
+
+### :memo: Documentation Changes
+- [`6b4d3dc`](https://github.com/clouddrove/terraform-azure-storage/commit/6b4d3dc284dd8773e9c893ba39445b01bfe6a5c2) - update CHANGELOG.md for 1.1.0 *(commit by [@clouddrove-ci](https://github.com/clouddrove-ci))*
+
+
 ## [1.1.0] - 2024-07-26
 ### :sparkles: New Features
 - [`fae3fb8`](https://github.com/clouddrove/terraform-azure-storage/commit/fae3fb8b344450ac5845c7d44901fd597487176b) - added required arguments *(commit by [@cloudlovely](https://github.com/cloudlovely))*
@@ -100,3 +112,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.8]: https://github.com/clouddrove/terraform-azure-storage/compare/1.0.7...1.0.8
 [1.0.9]: https://github.com/clouddrove/terraform-azure-storage/compare/1.0.8...1.0.9
 [1.1.0]: https://github.com/clouddrove/terraform-azure-storage/compare/1.0.9...1.1.0
+[1.1.1]: https://github.com/clouddrove/terraform-azure-storage/compare/1.1.0...1.1.1
