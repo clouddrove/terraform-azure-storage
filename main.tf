@@ -131,36 +131,6 @@ resource "azurerm_storage_account" "storage" {
       choice                      = routing.value.choice
     }
   }
-  dynamic "queue_properties" {
-    for_each = var.queue_properties_logging != null && contains(["Storage", "StorageV2"], var.account_kind) ? [1] : []
-    content {
-      logging {
-        delete                = var.queue_properties_logging.delete
-        read                  = var.queue_properties_logging.read
-        write                 = var.queue_properties_logging.write
-        version               = var.queue_properties_logging.version
-        retention_policy_days = var.queue_properties_logging.retention_policy_days
-      }
-      dynamic "hour_metrics" {
-        for_each = var.enable_hour_metrics ? var.hour_metrics : {}
-        content {
-          enabled               = hour_metrics.value.enabled
-          version               = hour_metrics.value.version
-          include_apis          = hour_metrics.value.include_apis
-          retention_policy_days = hour_metrics.value.retention_policy_days
-        }
-      }
-      dynamic "minute_metrics" {
-        for_each = var.enable_minute_metrics ? toset(var.minute_metrics) : []
-        content {
-          enabled               = minute_metrics.value.enabled
-          version               = minute_metrics.value.version
-          include_apis          = minute_metrics.value.include_apis
-          retention_policy_days = minute_metrics.value.retention_policy_days
-        }
-      }
-    }
-  }
   dynamic "share_properties" {
     for_each = var.file_share_cors_rules != null && var.file_share_retention_policy_in_days != null && var.file_share_properties_smb != null ? [1] : []
     content {
@@ -204,6 +174,43 @@ resource "azurerm_storage_account" "storage" {
     content {
       key_vault_key_id          = var.key_vault_id != null ? azurerm_key_vault_key.kvkey[0].id : null
       user_assigned_identity_id = var.key_vault_id != null ? azurerm_user_assigned_identity.identity[0].id : null
+    }
+  }
+}
+
+##----------------------------------------------------------------------------- 
+## Below resource will create queue properties for storage account
+##-----------------------------------------------------------------------------
+
+resource "azurerm_storage_account_queue_properties" "queue_properties" {
+  count              = var.queue_properties_logging != null && contains(["Storage", "StorageV2"], var.account_kind) ? 1 : 0
+  storage_account_id = azurerm_storage_account.storage[0].id
+
+  dynamic "logging" {
+    for_each = var.queue_properties_logging != null && contains(["Storage", "StorageV2"], var.account_kind) ? [1] : []
+    content {
+      delete                = var.queue_properties_logging.delete
+      read                  = var.queue_properties_logging.read
+      write                 = var.queue_properties_logging.write
+      version               = var.queue_properties_logging.version
+      retention_policy_days = var.queue_properties_logging.retention_policy_days
+    }
+  }
+
+  dynamic "hour_metrics" {
+    for_each = var.enable_hour_metrics ? var.hour_metrics : {}
+    content {
+      include_apis          = hour_metrics.value.include_apis
+      version               = hour_metrics.value.version
+      retention_policy_days = hour_metrics.value.retention_policy_days
+    }
+  }
+  dynamic "minute_metrics" {
+    for_each = var.enable_minute_metrics ? toset(var.minute_metrics) : []
+    content {
+      version               = minute_metrics.value.version
+      include_apis          = minute_metrics.value.include_apis
+      retention_policy_days = minute_metrics.value.retention_policy_days
     }
   }
 }
@@ -359,7 +366,7 @@ resource "azurerm_storage_container" "container" {
   provider              = azurerm.main_sub
   count                 = var.enabled ? length(var.containers_list) : 0
   name                  = var.containers_list[count.index].name
-  storage_account_name  = azurerm_storage_account.storage[0].name
+  storage_account_id    = azurerm_storage_account.storage[0].id
   container_access_type = var.containers_list[count.index].access_type
 }
 
@@ -367,11 +374,11 @@ resource "azurerm_storage_container" "container" {
 ## Below resource will create file share in storage account.  
 ##-----------------------------------------------------------------------------
 resource "azurerm_storage_share" "fileshare" {
-  provider             = azurerm.main_sub
-  count                = var.enabled ? length(var.file_shares) : 0
-  name                 = var.file_shares[count.index].name
-  storage_account_name = azurerm_storage_account.storage[0].name
-  quota                = var.file_shares[count.index].quota
+  provider           = azurerm.main_sub
+  count              = var.enabled ? length(var.file_shares) : 0
+  name               = var.file_shares[count.index].name
+  storage_account_id = azurerm_storage_account.storage[0].id
+  quota              = var.file_shares[count.index].quota
 }
 
 ##----------------------------------------------------------------------------- 
