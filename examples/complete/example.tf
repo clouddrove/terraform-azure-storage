@@ -2,13 +2,13 @@
 provider "azurerm" {
   features {}
   storage_use_azuread = true
-  subscription_id     = "01111111111110-11-11-11-11"
+  subscription_id     = "000001-11111-1223-XXX-XXXXXXXXXXXX"
 }
 
 provider "azurerm" {
   features {}
   alias           = "peer"
-  subscription_id = "01111111111110-11-11-11-11"
+  subscription_id = "000001-11111-1223-XXX-XXXXXXXXXXXX"
 }
 
 
@@ -159,7 +159,7 @@ module "storage" {
   }]
 
   ###customer_managed_key can only be set when the account_kind is set to StorageV2 or account_tier set to Premium, and the identity type is UserAssigned.
-  cmk_encryption_enabled = false
+  cmk_encryption_enabled = true
   key_vault_id           = module.vault.id
 
   ########Following to be uncommnented only when using DNS Zone from different subscription along with existing DNS zone.
