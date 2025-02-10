@@ -2,13 +2,13 @@
 provider "azurerm" {
   features {}
   storage_use_azuread = true
-  subscription_id     = "000001-11111-1223-XXX-XXXXXXXXXXXX"
+  subscription_id     = "01111111111110-11-11-11-11"
 }
 
 provider "azurerm" {
   features {}
   alias           = "peer"
-  subscription_id = "000001-11111-1223-XXX-XXXXXXXXXXXX"
+  subscription_id = "01111111111110-11-11-11-11"
 }
 
 
@@ -113,6 +113,7 @@ module "vault" {
   #private endpoint
   enable_private_endpoint = false
   network_acls            = null
+  
   ########Following to be uncommnented only when using DNS Zone from different subscription along with existing DNS zone.
 
   # diff_sub                                      = true
@@ -149,9 +150,16 @@ module "storage" {
   account_kind                  = "StorageV2"
   account_tier                  = "Standard"
   admin_objects_ids             = [data.azurerm_client_config.current_client_config.object_id]
+  network_rules = [
+  {
+    default_action             = "Allow"
+    ip_rules                   = ["0.0.0.0/0"]
+    virtual_network_subnet_ids = []
+    bypass                     = ["AzureServices"]
+  }]
 
   ###customer_managed_key can only be set when the account_kind is set to StorageV2 or account_tier set to Premium, and the identity type is UserAssigned.
-  cmk_encryption_enabled = true
+  cmk_encryption_enabled = false
   key_vault_id           = module.vault.id
 
   ########Following to be uncommnented only when using DNS Zone from different subscription along with existing DNS zone.

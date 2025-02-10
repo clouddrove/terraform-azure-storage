@@ -104,9 +104,14 @@ variable "containers_list" {
 }
 
 variable "network_rules" {
-  type        = map(string)
-  default     = {}
-  description = "List of objects that represent the configuration of each network rules."
+  type = list(object({
+    default_action             = string
+    ip_rules                   = list(string)
+    virtual_network_subnet_ids = optional(list(string), [])
+    bypass                     = optional(list(string), [])
+  }))
+  default     = []
+  description = "List of objects that represent the configuration of each network rule."
 }
 
 variable "table_encryption_key_type" {
