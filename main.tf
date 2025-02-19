@@ -366,7 +366,7 @@ resource "azurerm_storage_container" "container" {
   provider              = azurerm.main_sub
   count                 = var.enabled ? length(var.containers_list) : 0
   name                  = var.containers_list[count.index].name
-  storage_account_id    = azurerm_storage_account.storage[0].id
+  storage_account_name  = var.storage_account_name
   container_access_type = var.containers_list[count.index].access_type
 }
 
