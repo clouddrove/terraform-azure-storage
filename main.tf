@@ -483,17 +483,6 @@ locals {
   private_dns_zone_name = var.enable_private_endpoint && var.enabled ? var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone[0].name : var.existing_private_dns_zone : null
 }
 
-##----------------------------------------------------------------------------- 
-## Data block to retreive private ip of private endpoint.
-## Will work when storage account with cmk encryption. 
-##-----------------------------------------------------------------------------
-data "azurerm_private_endpoint_connection" "private-ip-0" {
-  provider            = azurerm.main_sub
-  count               = var.enabled && var.enable_private_endpoint ? 1 : 0
-  name                = azurerm_private_endpoint.pep[0].name
-  resource_group_name = local.resource_group_name
-  depends_on          = [azurerm_storage_account.storage]
-}
 
 ##----------------------------------------------------------------------------- 
 ## Below resource will create private dns zone in your azure subscription. 
