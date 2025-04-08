@@ -61,8 +61,4 @@ output "queues" {
   value       = { for q in azurerm_storage_queue.queues : q.name => q.id }
 }
 
-output "private_endpoint_connection_id" {
-  value = data.azurerm_private_endpoint_connection.private-ip-0[count.index].id
-}
-
 
