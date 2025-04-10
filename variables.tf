@@ -385,6 +385,12 @@ variable "existing_private_dns_zone" {
   description = "Name of the existing private DNS zone"
 }
 
+variable "existing_private_dns_zone_id" {
+  description = "The ID of an existing private DNS zone."
+  type        = string
+  default     = null
+}
+
 variable "existing_private_dns_zone_resource_group_name" {
   type        = string
   default     = null

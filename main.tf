@@ -454,6 +454,12 @@ resource "azurerm_private_endpoint" "pep" {
   resource_group_name = local.resource_group_name
   subnet_id           = var.subnet_id
   tags                = module.labels.tags
+
+  private_dns_zone_group {
+    name                 = format("%s-sa-dns-zone-group", module.labels.id)
+    private_dns_zone_ids = var.existing_private_dns_zone == null ? [azurerm_private_dns_zone.dnszone[0].id] : [var.existing_private_dns_zone_id]
+  }
+
   private_service_connection {
     name                           = format("%s-%s-psc", module.labels.id, var.storage_account_name)
     is_manual_connection           = false
@@ -477,17 +483,6 @@ locals {
   private_dns_zone_name = var.enable_private_endpoint && var.enabled ? var.existing_private_dns_zone == null ? azurerm_private_dns_zone.dnszone[0].name : var.existing_private_dns_zone : null
 }
 
-##----------------------------------------------------------------------------- 
-## Data block to retreive private ip of private endpoint.
-## Will work when storage account with cmk encryption. 
-##-----------------------------------------------------------------------------
-data "azurerm_private_endpoint_connection" "private-ip-0" {
-  provider            = azurerm.main_sub
-  count               = var.enabled && var.enable_private_endpoint ? 1 : 0
-  name                = azurerm_private_endpoint.pep[0].name
-  resource_group_name = local.resource_group_name
-  depends_on          = [azurerm_storage_account.storage]
-}
 
 ##----------------------------------------------------------------------------- 
 ## Below resource will create private dns zone in your azure subscription. 
@@ -558,44 +553,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "addon_vent_link" {
   tags                  = module.labels.tags
 }
 
-##----------------------------------------------------------------------------- 
-## Below resource will create dns A record for private ip of private endpoint in private dns zone. 
-##-----------------------------------------------------------------------------
-resource "azurerm_private_dns_a_record" "arecord" {
-  provider            = azurerm.main_sub
-  count               = var.enabled && var.enable_private_endpoint && var.diff_sub == false ? 1 : 0
-  name                = var.key_vault_id != null ? azurerm_storage_account.storage[0].name : null
-  zone_name           = local.private_dns_zone_name
-  resource_group_name = local.valid_rg_name
-  ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.private-ip-0[0].private_service_connection[0].private_ip_address]
-  tags                = module.labels.tags
-  lifecycle {
-    ignore_changes = [
-      tags,
-    ]
-  }
-}
-
-##----------------------------------------------------------------------------- 
-## Below resource will create dns A record for private ip of private endpoint in private dns zone. 
-## This resource will be created when private dns is in different subscription. 
-##-----------------------------------------------------------------------------
-resource "azurerm_private_dns_a_record" "arecord1" {
-  count               = var.enabled && var.enable_private_endpoint && var.diff_sub == true ? 1 : 0
-  provider            = azurerm.dns_sub
-  name                = var.key_vault_id != null ? azurerm_storage_account.storage[0].name : null
-  zone_name           = local.private_dns_zone_name
-  resource_group_name = local.valid_rg_name
-  ttl                 = 3600
-  records             = [data.azurerm_private_endpoint_connection.private-ip-0[0].private_service_connection[0].private_ip_address]
-  tags                = module.labels.tags
-  lifecycle {
-    ignore_changes = [
-      tags,
-    ]
-  }
-}
 
 ##----------------------------------------------------------------------------- 
 ## Below resources will create diagnostic setting for storage account and its components. 
