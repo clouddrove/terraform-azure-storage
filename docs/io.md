@@ -57,7 +57,7 @@
 | log\_analytics\_destination\_type | Possible values are AzureDiagnostics and Dedicated, default to AzureDiagnostics. When set to Dedicated, logs sent to a Log Analytics workspace will go into resource specific tables, instead of the legacy AzureDiagnostics table. | `string` | `"AzureDiagnostics"` | no |
 | log\_analytics\_workspace\_id | log analytics workspace id to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
 | logs | n/a | `list(string)` | <pre>[<br>  "StorageWrite",<br>  "StorageRead",<br>  "StorageDelete"<br>]</pre> | no |
-| managedby | ManagedBy, eg 'Identos'. | `string` | `""` | no |
+| managedby | ManagedBy | `string` | `""` | no |
 | management\_policy | Configure Azure Storage firewalls and virtual networks | <pre>list(object({<br>    prefix_match               = set(string)<br>    tier_to_cool_after_days    = number<br>    tier_to_archive_after_days = number<br>    delete_after_days          = number<br>    snapshot_delete_after_days = number<br>  }))</pre> | <pre>[<br>  {<br>    "delete_after_days": 100,<br>    "prefix_match": null,<br>    "snapshot_delete_after_days": 30,<br>    "tier_to_archive_after_days": 50,<br>    "tier_to_cool_after_days": 0<br>  }<br>]</pre> | no |
 | management\_policy\_enable | n/a | `bool` | `false` | no |
 | metrics | n/a | `list(string)` | <pre>[<br>  "Transaction",<br>  "Capacity"<br>]</pre> | no |

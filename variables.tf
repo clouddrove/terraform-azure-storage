@@ -27,7 +27,7 @@ variable "label_order" {
 variable "managedby" {
   type        = string
   default     = ""
-  description = "ManagedBy, eg 'Identos'."
+  description = "ManagedBy"
 }
 
 variable "extra_tags" {
