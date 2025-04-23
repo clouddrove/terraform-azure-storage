@@ -1,0 +1,15 @@
+name: Security Scan
+
+on:
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - '**.tf'
+  workflow_dispatch:
+
+jobs:
+  terraform-security:
+    uses: clouddrove-sandbox/resource-group-workflow/.github/workflows/tf-scan.yml@master
+    with:
+      directory: '.'
+      continue_on_error: 'true'
