@@ -2,7 +2,7 @@ data "azurerm_client_config" "current" {}
 
 
 ##----------------------------------------------------------------------------- 
-## Labels module callled that will be used for naming and tags.   
+## Labels module callled that will be used for naming and tagsgeggr
 ##-----------------------------------------------------------------------------
 module "labels" {
   source      = "clouddrove/labels/azure"
