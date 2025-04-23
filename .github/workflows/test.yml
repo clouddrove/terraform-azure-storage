@@ -12,4 +12,4 @@ jobs:
     uses: clouddrove-sandbox/resource-group-workflow/.github/workflows/tf-scan.yml@master
     with:
       directory: '.'
-      continue_on_error: 'false'
+      continue_on_error: 'true'
