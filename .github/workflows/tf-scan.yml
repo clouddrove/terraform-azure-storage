@@ -53,10 +53,11 @@ jobs:
       # Using the Checkov action with both CLI and SARIF output formats
       - name: Checkov Scan
         id: checkov
+        continue-on-error: true
         uses: bridgecrewio/checkov-action@v12
         with:
           directory: ${{ inputs.directory }}
-          soft_fail: ${{ inputs.continue_on_error == 'true' }}
+          soft_fail: true
           var_file: ${{ inputs.var_file }}
           download_external_modules: false
           skip_check: CKV_TF_1
@@ -65,32 +66,43 @@ jobs:
 
       # Create error annotations with file and line information
       - name: Process Checkov Results
-        if: steps.checkov.outcome == 'failure' && (success() || failure())
+        if: always()
         run: |
-          if [ -f "results.sarif" ]; then
-            echo "Processing SARIF file to create line-specific error annotations..."
+          # Check if Checkov step failed
+          if [ "${{ steps.checkov.outcome }}" == "failure" ]; then
+            echo "::error title=Checkov Scan Failed::The security scan encountered errors during execution"
             
-            # Use jq to extract the necessary information from the SARIF file
-            # First, install jq if not already available
-            if ! command -v jq &> /dev/null; then
-              echo "Installing jq..."
-              sudo apt-get update && sudo apt-get install -y jq
+            # If SARIF file exists, process it
+            if [ -f "results.sarif" ]; then
+              echo "Processing SARIF file to create line-specific error annotations..."
+              
+              # Install jq if needed
+              if ! command -v jq &> /dev/null; then
+                echo "Installing jq..."
+                sudo apt-get update && sudo apt-get install -y jq
+              fi
+              
+              # Extract results with file paths, line numbers, and messages
+              jq -r '.runs[].results[] | select(.level == "error") | 
+                (.message.text | gsub("\\n"; " ")) as $message |
+                (.locations[0].physicalLocation.artifactLocation.uri // "-") as $file |
+                (.locations[0].physicalLocation.region.startLine // 1) as $line |
+                "::error file=\($file),line=\($line),title=Security Issue::\($message)"' results.sarif
+            else
+              echo "::error title=No SARIF File::Could not find SARIF results file. Scan may have failed early."
             fi
             
-            # Extract results with file paths, line numbers, and messages
-            jq -r '.runs[].results[] | select(.level == "error") | 
-              (.message.text | gsub("\\n"; " ")) as $message |
-              (.locations[0].physicalLocation.artifactLocation.uri // "-") as $file |
-              (.locations[0].physicalLocation.region.startLine // 1) as $line |
-              "::error file=\($file),line=\($line),title=Security Issue::\($message)"' results.sarif
-          else
-            echo "::error title=Checkov Scan Failed::Could not find SARIF results file"
+            # Fail the workflow if continue_on_error is false
+            if [ "${{ inputs.continue_on_error }}" == "false" ]; then
+              echo "Failing workflow because continue_on_error is set to false"
+              exit 1
+            fi
           fi
 
-      # Upload SARIF file to GitHub Security tab
+      # Upload SARIF file to GitHub Security tab if it exists
       - name: Upload SARIF file
+        if: always() && steps.checkov.outcome == 'success'
         uses: github/codeql-action/upload-sarif@v3
-        if: success() || failure()
         with:
           sarif_file: results.sarif
           category: checkov
