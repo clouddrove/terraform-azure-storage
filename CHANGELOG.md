@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-08-29
+### :sparkles: New Features
+- [`cb86e52`](https://github.com/clouddrove/terraform-azure-storage/commit/cb86e52bd784d01f851cada21fdce6b413acadfc) - Added new resource & fixed deprications *(commit by [@Tanishdrove](https://github.com/Tanishdrove))*
+
+### :bug: Bug Fixes
+- [`445de66`](https://github.com/clouddrove/terraform-azure-storage/commit/445de66c7411d009fffd66cd929a1e0fb3c7e0ea) - added existing dns zone id variable *(commit by [@rushimohite001](https://github.com/rushimohite001))*
+- [`3d5b2de`](https://github.com/clouddrove/terraform-azure-storage/commit/3d5b2debfe349b2e5ce946f359b0e4bf9123fefd) - added private endpoint connection id at output.tf *(commit by [@rushimohite001](https://github.com/rushimohite001))*
+- [`9e5f38a`](https://github.com/clouddrove/terraform-azure-storage/commit/9e5f38a066a208d9adb4508a8123d485e7941103) - added private endpoint connection id at output.tf *(commit by [@rushimohite001](https://github.com/rushimohite001))*
+- [`c48f686`](https://github.com/clouddrove/terraform-azure-storage/commit/c48f68612864e3b4f73076facddff3947cad99dc) - remove private endpoint connection id at output.tf *(commit by [@rushimohite001](https://github.com/rushimohite001))*
+- [`9f4bebd`](https://github.com/clouddrove/terraform-azure-storage/commit/9f4bebde358725229be7a9fa21a801bac2638128) - removed azurerm_private_endpoint_connection data block. *(commit by [@rushimohite001](https://github.com/rushimohite001))*
+- [`b8a1b14`](https://github.com/clouddrove/terraform-azure-storage/commit/b8a1b140c35ee71f093e54f457766906eadee4ec) - Updated variables *(PR [#81](https://github.com/clouddrove/terraform-azure-storage/pull/81) by [@Manjeet-Singh2428](https://github.com/Manjeet-Singh2428))*
+
+### :construction_worker: Build System
+- [`bf70b87`](https://github.com/clouddrove/terraform-azure-storage/commit/bf70b8774eec43103b569d3ac03a454d53942227) - **deps**: bump clouddrove/log-analytics/azure in /examples/complete *(PR [#76](https://github.com/clouddrove/terraform-azure-storage/pull/76) by [@dependabot[bot]](https://github.com/apps/dependabot))*
+
+
 ## [1.1.1] - 2024-10-15
 ### :bug: Bug Fixes
 - [`1001fd9`](https://github.com/clouddrove/terraform-azure-storage/commit/1001fd9f47d34d132c46aa1a5ace2734290f6c32) - renamed _examples to examples and referenced it *(PR [#64](https://github.com/clouddrove/terraform-azure-storage/pull/64) by [@vjdbj](https://github.com/vjdbj))*
@@ -113,3 +129,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.9]: https://github.com/clouddrove/terraform-azure-storage/compare/1.0.8...1.0.9
 [1.1.0]: https://github.com/clouddrove/terraform-azure-storage/compare/1.0.9...1.1.0
 [1.1.1]: https://github.com/clouddrove/terraform-azure-storage/compare/1.1.0...1.1.1
+[1.2.0]: https://github.com/clouddrove/terraform-azure-storage/compare/1.1.1...1.2.0
