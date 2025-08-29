@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2025-08-29
+### :sparkles: New Features
+- [`d7ff7da`](https://github.com/clouddrove/terraform-azure-storage/commit/d7ff7da00f93f8791c2b775857a31e4cca0824da) - Updated Container Depreciated Attribute *(commit by [@vedkops](https://github.com/vedkops))*
+
+### :memo: Documentation Changes
+- [`7b756df`](https://github.com/clouddrove/terraform-azure-storage/commit/7b756df493219dbf9502415296b958d6d0fec6c9) - update CHANGELOG.md for 1.2.0 *(commit by [@clouddrove-ci](https://github.com/clouddrove-ci))*
+
+
 ## [1.2.0] - 2025-08-29
 ### :sparkles: New Features
 - [`cb86e52`](https://github.com/clouddrove/terraform-azure-storage/commit/cb86e52bd784d01f851cada21fdce6b413acadfc) - Added new resource & fixed deprications *(commit by [@Tanishdrove](https://github.com/Tanishdrove))*
@@ -130,3 +138,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.1.0]: https://github.com/clouddrove/terraform-azure-storage/compare/1.0.9...1.1.0
 [1.1.1]: https://github.com/clouddrove/terraform-azure-storage/compare/1.1.0...1.1.1
 [1.2.0]: https://github.com/clouddrove/terraform-azure-storage/compare/1.1.1...1.2.0
+[1.2.1]: https://github.com/clouddrove/terraform-azure-storage/compare/1.2.0...1.2.1
