@@ -98,7 +98,7 @@ module "vault" {
   }
 
   source  = "clouddrove/key-vault/azure"
-  version = "1.1.0"
+  version = "1.3.0"
 
   name                        = "vae59605811"
   environment                 = "test"
